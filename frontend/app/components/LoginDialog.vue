@@ -2,7 +2,7 @@
     <v-dialog v-model="internalValue" max-width="500" persistent theme="light">
         <v-card class="pa-4 rounded-lg">
             <v-card-title class="d-flex justify-center align-center">
-                <span class="text-h4 font-weight-medium">Admin Login</span>
+                <span class="text-h4 font-weight-medium">Staff login</span>
                 <v-spacer></v-spacer>
                 <v-btn icon="mdi-close" variant="text" @click="close"></v-btn>
             </v-card-title>
@@ -68,6 +68,8 @@
     const loading = ref(false);
 
     const apiBase = usePublicApiBase();
+    const token = useCookie("auth_token");
+    const roleCookie = useCookie("auth_role");
 
     const close = () => {
         internalValue.value = false;
@@ -84,11 +86,9 @@
                 },
             });
 
-            // Save token in cookie
-            const token = useCookie("auth_token");
             token.value = response.access_token;
+            roleCookie.value = response?.user?.role ?? null;
 
-            // Redirect to admin
             navigateTo("/admin");
             close();
         } catch (error) {

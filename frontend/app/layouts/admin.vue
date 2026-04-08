@@ -64,13 +64,37 @@
 
   const drawer = ref(true);
 
-  const navItems = [
-      { title: "Dashboard", icon: "mdi-view-dashboard", to: "/admin" },
-      { title: "Appointments", icon: "mdi-calendar-clock", to: "/admin/appointments" },
-      { title: "Patients", icon: "mdi-account-group", to: "/admin/patients" },
-      { title: "Services", icon: "mdi-stethoscope", to: "/admin/services" },
-    //   { title: "Settings", icon: "mdi-cog-outline", to: "/admin/settings" },
-  ];
+  const authRole = useCookie("auth_role");
+
+  const navItems = computed(() => {
+      const items = [
+          { title: "Dashboard", icon: "mdi-view-dashboard", to: "/admin" },
+          { title: "Appointments", icon: "mdi-calendar-clock", to: "/admin/appointments" },
+          { title: "Patients", icon: "mdi-account-group", to: "/admin/patients" },
+      ];
+      if (authRole.value === "admin") {
+          items.push({ title: "Services", icon: "mdi-stethoscope", to: "/admin/services" });
+      }
+      items.push({ title: "Audit Logs", icon: "mdi-file-chart", to: "/admin/audit-logs" });
+      return items;
+  });
+
+  onMounted(async () => {
+      const token = useCookie("auth_token");
+      if (!token.value || authRole.value) {
+          return;
+      }
+      try {
+          const user = await $fetch(`${apiBase.value}/api/user`, {
+              headers: { Authorization: `Bearer ${token.value}` },
+          });
+          if (user?.role) {
+              authRole.value = user.role;
+          }
+      } catch {
+          /* ignore */
+      }
+  });
 
   const logout = async () => {
       const token = useCookie("auth_token");
@@ -86,6 +110,7 @@
           console.error("Logout failed:", error);
       } finally {
           token.value = null;
+          authRole.value = null;
           navigateTo("/");
       }
   };

@@ -10,13 +10,19 @@ class ServiceController extends Controller
 {
     /**
      * List services. Default: active only (for booking UIs).
-     * Query: include_inactive=1 — all services (admin).
+     * Query: include_inactive=1 — all services (authenticated admin only).
      */
     public function index(Request $request)
     {
         $query = Service::query()->orderBy('name');
 
-        if (! $request->boolean('include_inactive')) {
+        $includeInactive = $request->boolean('include_inactive');
+        if ($includeInactive) {
+            $user = $request->user('sanctum');
+            $includeInactive = $user && $user->isAdmin();
+        }
+
+        if (! $includeInactive) {
             $query->where('is_active', true);
         }
 

@@ -12,11 +12,14 @@ class AdminUserSeeder extends Seeder
      */
     public function run(): void
     {
-        \App\Models\User::create([
-            'name' => 'Admin User',
-            'username' => 'admin',
-            'email' => 'admin@urmaza.com',
-            'password' => \Illuminate\Support\Facades\Hash::make('password'),
-        ]);
+        \App\Models\User::updateOrCreate(
+            ['email' => 'admin@urmaza.com'],
+            [
+                'name' => 'Admin User',
+                'username' => 'admin',
+                'password' => \Illuminate\Support\Facades\Hash::make('password'),
+                'role' => \App\Models\User::ROLE_ADMIN,
+            ],
+        );
     }
 }

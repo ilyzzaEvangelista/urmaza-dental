@@ -21,4 +21,12 @@ Route::get('appointments/week', [AppointmentController::class, 'week']);
 Route::get('appointments/calendar-month', [AppointmentController::class, 'calendarMonth']);
 Route::get('appointments/patients', [AppointmentController::class, 'patients']);
 Route::apiResource('appointments', AppointmentController::class);
-Route::apiResource('services', ServiceController::class);
+
+Route::get('services', [ServiceController::class, 'index']);
+Route::get('services/{service}', [ServiceController::class, 'show']);
+Route::middleware(['auth:sanctum', 'admin'])->group(function () {
+    Route::post('services', [ServiceController::class, 'store']);
+    Route::put('services/{service}', [ServiceController::class, 'update']);
+    Route::patch('services/{service}', [ServiceController::class, 'update']);
+    Route::delete('services/{service}', [ServiceController::class, 'destroy']);
+});

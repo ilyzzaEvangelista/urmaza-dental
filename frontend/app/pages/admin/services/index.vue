@@ -138,9 +138,11 @@
 <script setup>
   definePageMeta({
       layout: "admin",
+      middleware: ["admin-only-services"],
   });
 
   const apiBase = usePublicApiBase();
+  const authHeaders = useAuthFetchHeaders();
   const fetchError = ref("");
   const loading = ref(false);
   const services = ref([]);
@@ -206,6 +208,7 @@
       try {
           const rows = await $fetch(`${apiBase.value}/api/services`, {
               query: { include_inactive: 1 },
+              headers: { ...authHeaders.value },
           });
           services.value = Array.isArray(rows) ? rows : [];
           clampPageToData();
@@ -289,7 +292,10 @@
       deleting.value = true;
       fetchError.value = "";
       try {
-          await $fetch(`${apiBase.value}/api/services/${row.id}`, { method: "DELETE" });
+          await $fetch(`${apiBase.value}/api/services/${row.id}`, {
+              method: "DELETE",
+              headers: { ...authHeaders.value },
+          });
           deleteOpen.value = false;
           deleteTarget.value = null;
           await loadServices();
