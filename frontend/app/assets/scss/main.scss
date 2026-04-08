@@ -2,7 +2,7 @@
 // @use "vuetify/styles";
 
 :root {
-  --primary-blue: #1A5FA8;
+  --primary-blue: #1A237E;
   --secondary-yellow: #FDB813;
   --text-dark: #333333;
   --bg-light: #F9FAFB;
@@ -37,6 +37,7 @@ body {
   border: 1px solid #EDEDED;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s ease-in-out;
+
   &:hover {
     transform: translateY(-5px);
   }
@@ -54,4 +55,3 @@ body {
 .brightness-white {
   filter: brightness(0) invert(1);
 }
-
