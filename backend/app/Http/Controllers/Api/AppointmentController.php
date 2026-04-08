@@ -18,21 +18,41 @@ class AppointmentController extends Controller
     }
 
     /**
-     * Check if the given minute slot already has an appointment.
+     * Statuses that still reserve the time slot for new bookings.
+     * Completed / cancelled / no-show visits do not block the slot.
+     *
+     * @return list<string>
      */
-    protected function slotOccupied(Carbon $moment, ?int $exceptId = null): bool
+    protected function slotBlockingStatuses(): array
+    {
+        return ['pending', 'confirmed'];
+    }
+
+    /**
+     * The appointment occupying this minute slot, if any (only pending/confirmed block).
+     */
+    protected function slotBlockingAppointment(Carbon $moment, ?int $exceptId = null): ?Appointment
     {
         $start = $moment->copy()->startOfMinute();
         $end = $moment->copy()->endOfMinute();
 
         $query = Appointment::query()
-            ->whereBetween('appointment_date', [$start, $end]);
+            ->whereBetween('appointment_date', [$start, $end])
+            ->whereIn('status', $this->slotBlockingStatuses());
 
         if ($exceptId !== null) {
             $query->where('id', '!=', $exceptId);
         }
 
-        return $query->exists();
+        return $query->first();
+    }
+
+    /**
+     * Check if the given minute slot already has a blocking appointment.
+     */
+    protected function slotOccupied(Carbon $moment, ?int $exceptId = null): bool
+    {
+        return $this->slotBlockingAppointment($moment, $exceptId) !== null;
     }
 
     public function availability(Request $request)
@@ -45,8 +65,11 @@ class AppointmentController extends Controller
         $moment = $this->normalizeAppointmentMoment($request->query('datetime'));
         $exceptId = $request->filled('except_id') ? (int) $request->query('except_id') : null;
 
+        $blocking = $this->slotBlockingAppointment($moment, $exceptId);
+
         return response()->json([
-            'available' => ! $this->slotOccupied($moment, $exceptId),
+            'available' => $blocking === null,
+            'blocked_by_pending' => $blocking !== null && strtolower((string) $blocking->status) === 'pending',
         ]);
     }
 

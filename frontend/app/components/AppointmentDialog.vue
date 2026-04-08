@@ -99,7 +99,17 @@
                   ></v-text-field>
 
                   <v-alert
-                      v-if="slotAvailability === 'taken'"
+                      v-if="slotAvailability === 'taken_pending'"
+                      type="warning"
+                      variant="tonal"
+                      density="compact"
+                      rounded="lg"
+                      class="mb-4 text-body-2"
+                  >
+                      This slot already has a pending appointment. Please choose another time.
+                  </v-alert>
+                  <v-alert
+                      v-else-if="slotAvailability === 'taken'"
                       type="warning"
                       variant="tonal"
                       density="compact"
@@ -254,7 +264,13 @@
           const result = await $fetch(`${apiBase.value}/api/appointments/availability`, {
               query: { datetime },
           });
-          slotAvailability.value = result.available ? "available" : "taken";
+          if (result.available) {
+              slotAvailability.value = "available";
+          } else if (result.blocked_by_pending) {
+              slotAvailability.value = "taken_pending";
+          } else {
+              slotAvailability.value = "taken";
+          }
       } catch {
           slotAvailability.value = "error";
       }
@@ -279,6 +295,11 @@
 
       if (formData.value.appointment_date) {
           await checkSlotAvailability(formData.value.appointment_date);
+      }
+
+      if (slotAvailability.value === "taken_pending") {
+          showToast("That slot already has a pending appointment. Please choose another time.", "error");
+          return;
       }
 
       if (slotAvailability.value === "taken") {

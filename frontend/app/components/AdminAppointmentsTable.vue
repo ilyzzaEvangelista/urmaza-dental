@@ -80,7 +80,11 @@
 
           <template #item.status="{ item }">
               <v-chip :color="item.statusColor" size="small" class="font-weight-bold px-4" variant="flat">
-                  {{ item.status }}
+                  <p v-if="item.status == 'Pending'" class="text-caption">Reserved</p>
+                  <p v-if="item.status == 'Confirmed'" class="text-caption">Confirmed</p>
+                  <p v-if="item.status == 'Completed'" class="text-caption">Completed</p>
+                  <p v-if="item.status == 'Cancelled'" class="text-caption">Cancelled</p>
+                  <p v-if="item.status == 'No Show'" class="text-caption">No Show</p>
               </v-chip>
           </template>
 

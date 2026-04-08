@@ -7,12 +7,14 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       /**
-       * Laravel API origin. Empty string = same origin (see `nitro.devProxy` in dev).
-       * Set `NUXT_PUBLIC_API_BASE=http://127.0.0.1:8000` to call Laravel directly.
+       * Laravel API origin. Empty = in **production** same origin as the SPA; in **`nuxt dev`** the app
+       * resolves to `http://127.0.0.1:8000` (see `utils/apiBase.js`) unless you set this explicitly.
        */
       apiBase: process.env.NUXT_PUBLIC_API_BASE ?? '',
       /** Same IANA zone as Laravel `APP_TIMEZONE` (appointment wall times) */
       clinicTimezone: process.env.NUXT_PUBLIC_CLINIC_TIMEZONE || 'Asia/Manila',
+      /** Clinic Facebook page — set `NUXT_PUBLIC_FACEBOOK_URL` in `.env` */
+      facebookUrl: process.env.NUXT_PUBLIC_FACEBOOK_URL || 'https://www.facebook.com/urmazadental',
     },
   },
 
@@ -62,6 +64,16 @@ export default defineNuxtConfig({
         '@vue/devtools-core',
         '@vue/devtools-kit'
       ]
-    }
+    },
+    /**
+     * Browser `$fetch('/api/...')` in dev goes through Vite; without this, Nuxt returns 404 for `/api/*`.
+     * `nitro.devProxy` alone does not always apply to client-side requests.
+     */
+    server: {
+      proxy: {
+        '/api': { target: 'http://127.0.0.1:8000', changeOrigin: true },
+        '/storage': { target: 'http://127.0.0.1:8000', changeOrigin: true },
+      },
+    },
   }
 })

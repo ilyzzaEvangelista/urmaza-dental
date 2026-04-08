@@ -2,8 +2,14 @@
   <v-app theme="light">
       <!-- Sidebar -->
       <v-navigation-drawer v-model="drawer" color="white" elevation="1" width="280">
-          <div class="pa-2 d-flex align-center">
-              <v-img src="/cover.png" width="100" height="100" contain class="mr-2"></v-img>
+          <div class="pa-8 sidebar-brand d-flex align-center justify-center">
+              <img
+                  :src="sidebarLogoSrc"
+                  alt="Urmaza Dental Clinic"
+                  class="admin-sidebar-logo"
+                  loading="eager"
+                  decoding="async"
+              />
           </div>
           <v-divider></v-divider>
 
@@ -45,6 +51,16 @@
 
 <script setup>
   const apiBase = usePublicApiBase();
+  const runtimeConfig = useRuntimeConfig();
+
+  /** Public folder asset; respects `app.baseURL` when not served from `/`. */
+  const sidebarLogoSrc = computed(() => {
+      const base = runtimeConfig.app.baseURL || "/";
+      if (base === "/" || base === "") {
+          return "/cover.png";
+      }
+      return `${String(base).replace(/\/$/, "")}/cover.png`;
+  });
 
   const drawer = ref(true);
 
@@ -78,5 +94,19 @@
 <style scoped>
   .text-primary-blue {
       color: #1a237e;
+  }
+
+  .sidebar-brand {
+      width: 100%;
+      box-sizing: border-box;
+  }
+
+  /* Full drawer width (280px); height follows aspect ratio — no cropping */
+  .admin-sidebar-logo {
+      display: block;
+      width: 100%;
+      height: auto;
+      object-fit: contain;
+      object-position: center;
   }
 </style>
