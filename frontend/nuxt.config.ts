@@ -6,9 +6,21 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:8000',
+      /**
+       * Laravel API origin. Empty string = same origin (see `nitro.devProxy` in dev).
+       * Set `NUXT_PUBLIC_API_BASE=http://127.0.0.1:8000` to call Laravel directly.
+       */
+      apiBase: process.env.NUXT_PUBLIC_API_BASE ?? '',
       /** Same IANA zone as Laravel `APP_TIMEZONE` (appointment wall times) */
       clinicTimezone: process.env.NUXT_PUBLIC_CLINIC_TIMEZONE || 'Asia/Manila',
+    },
+  },
+
+  /** Proxy API (and storage) to Laravel so the browser uses one origin (avoids CORS). */
+  nitro: {
+    devProxy: {
+      '/api': { target: 'http://127.0.0.1:8000', changeOrigin: true },
+      '/storage': { target: 'http://127.0.0.1:8000', changeOrigin: true },
     },
   },
 

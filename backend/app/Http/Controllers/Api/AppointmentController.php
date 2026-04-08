@@ -50,17 +50,116 @@ class AppointmentController extends Controller
         ]);
     }
 
-    public function index(Request $request)
+    /**
+     * Distinct patients (by email) with at least one appointment in the given window.
+     */
+    protected function distinctPatientCount(Carbon $start, Carbon $end): int
     {
-        $limit = (int) $request->query('limit', 50);
-        $limit = max(1, min($limit, 100));
+        $value = Appointment::query()
+            ->whereBetween('appointment_date', [$start, $end])
+            ->selectRaw('count(distinct email) as aggregate')
+            ->value('aggregate');
+
+        return (int) $value;
+    }
+
+    /**
+     * Dashboard stats: unique patients (by email) for today, this week, and all time.
+     */
+    public function patientAnalytics()
+    {
+        $tz = config('app.timezone');
+        $now = now()->timezone($tz);
+
+        $todayStart = $now->copy()->startOfDay();
+        $todayEnd = $now->copy()->endOfDay();
+
+        $weekStart = $now->copy()->startOfWeek();
+        $weekEnd = $now->copy()->endOfWeek();
+
+        $patientsToday = $this->distinctPatientCount($todayStart, $todayEnd);
+        $patientsThisWeek = $this->distinctPatientCount($weekStart, $weekEnd);
+
+        $patientsTotal = (int) Appointment::query()
+            ->selectRaw('count(distinct email) as aggregate')
+            ->value('aggregate');
+
+        return response()->json([
+            'patients_today' => $patientsToday,
+            'patients_this_week' => $patientsThisWeek,
+            'patients_total' => $patientsTotal,
+        ]);
+    }
+
+    /**
+     * Appointments for a calendar week (Mon–Sun), for the admin week board.
+     * Query: week_offset (int, default 0) — 0 = current week, -1 = previous, +1 = next.
+     */
+    public function week(Request $request)
+    {
+        $offset = (int) $request->query('week_offset', 0);
+
+        $tz = config('app.timezone');
+        $now = now()->timezone($tz);
+
+        $anchor = $now->copy()->startOfWeek()->addWeeks($offset);
+        $rangeStart = $anchor->copy()->startOfDay();
+        $rangeEnd = $anchor->copy()->endOfWeek()->endOfDay();
+
+        $days = [];
+        $cursor = $rangeStart->copy();
+        for ($i = 0; $i < 7; $i++) {
+            $days[] = [
+                'date' => $cursor->toDateString(),
+                'weekday_short' => $cursor->format('D'),
+                'day' => (int) $cursor->format('j'),
+                'is_today' => $cursor->isSameDay($now),
+            ];
+            $cursor->addDay();
+        }
 
         $appointments = Appointment::query()
-            ->latest('id')
-            ->limit($limit)
+            ->whereBetween('appointment_date', [$rangeStart, $rangeEnd])
+            ->orderBy('appointment_date')
             ->get();
 
-        return response()->json($appointments);
+        $grouped = [];
+        foreach ($appointments as $a) {
+            $key = $a->appointment_date->clone()->timezone($tz)->format('Y-m-d');
+            if (! isset($grouped[$key])) {
+                $grouped[$key] = [];
+            }
+            $grouped[$key][] = $a;
+        }
+        ksort($grouped);
+
+        return response()->json([
+            'week_offset' => $offset,
+            'week_start' => $rangeStart->toIso8601String(),
+            'week_end' => $rangeEnd->toIso8601String(),
+            'month_label' => $anchor->format('F Y'),
+            'days' => $days,
+            'grouped_appointments' => $grouped,
+        ]);
+    }
+
+    public function index(Request $request)
+    {
+        $perPage = 10;
+
+        $validated = $request->validate([
+            'status' => 'sometimes|in:pending,confirmed,completed,cancelled',
+        ]);
+
+        $query = Appointment::query()
+            ->orderByDesc('appointment_date')
+            ->orderByDesc('id');
+
+        if (isset($validated['status'])) {
+            $query->where('status', $validated['status']);
+        }
+
+        return $query->paginate($perPage);
     }
 
     public function store(Request $request)

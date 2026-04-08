@@ -14,7 +14,7 @@
           </v-btn>
       </div>
 
-      <AppointmentDialog v-model="showBooking" @success="loadAppointments" />
+      <AppointmentDialog v-model="showBooking" @success="onAppointmentSaved" />
 
       <AppointmentAdminDialogs
           v-model:view-open="viewOpen"
@@ -24,7 +24,7 @@
           :viewing="viewing"
           :editing="editing"
           :item-to-delete="itemToDelete"
-          @saved="loadAppointments"
+          @saved="refreshDashboard"
           @deleted="onAppointmentDeleted"
           @error="fetchError = $event"
       />
@@ -33,95 +33,33 @@
           {{ fetchError }}
       </v-alert>
 
-      <!--  Recent Appointments Table -->
-      <v-card class="appointments-card rounded-xl border shadow-sm" flat >
-          <v-card-title class="pa-6 d-flex align-center">
-              <span class="text-h6 font-weight-bold text-grey-darken-4">Recent Appointments</span>
-              <v-spacer></v-spacer>
-              <v-btn color="primary-blue" density="comfortable" variant="outlined" size="default" @click="refreshAppointments">
-                <v-icon class="mr-2" icon="mdi-refresh" color="primary-blue" density="comfortable" variant="flat" size="small"></v-icon>
-                Refresh
-              </v-btn>
-          </v-card-title>
+      <AdminPatientAnalytics ref="analyticsRef" :api-base="apiBase" />
 
-          <v-data-table
-              class="appointments-table px-4 text-grey-darken-3"
-              :headers="tableHeaders"
-              :items="appointments"
-              :loading="loading"
-              item-value="id"
-              :items-per-page="-1"
-              hide-default-footer
-              no-data-text=""
-          >
-              <template #no-data>
-                  <div v-if="!loading" class="text-center py-8 text-grey-darken-1">
-                      <v-icon icon="mdi-calendar-blank" size="large" class="mb-2 d-block mx-auto"></v-icon>
-                      No appointments found.
-                  </div>
-              </template>
-
-              <template #item.name="{ item }">
-                  <div class="d-flex align-center py-2">
-                      <v-avatar color="primary-blue-lighten-4" size="36" class="mr-3">
-                          <span class="text-caption font-weight-bold text-primary-blue">{{ item.initials }}</span>
-                      </v-avatar>
-                      <div>
-                          <div class="font-weight-bold">{{ item.name }}</div>
-                          <div class="text-caption text-grey-darken-1">
-                            <v-icon icon="mdi-phone" color="primary-blue" size="small" class="mr-1"></v-icon>
-                            Contact: {{ item.phone }}</div>
-                      </div>
-                  </div>
-              </template>
-
-              <template #item.date="{ item }">
-                  <div class="font-weight-medium">{{ item.date }}</div>
-                  <div v-if="item.time" class="text-caption text-grey-darken-1">{{ item.time }}</div>
-              </template>
-
-              <template #item.status="{ item }">
-                  <v-chip :color="item.statusColor" size="small" class="font-weight-bold px-4" variant="flat">
-                      {{ item.status }}
-                  </v-chip>
-              </template>
-
-              <template #item.actions="{ item }">
-                  <div class="text-end d-flex flex-wrap ga-1 justify-end">
-                      <v-btn
-                          size="small"
-                          variant="text"
-                          color="primary-blue"
-                          prepend-icon="mdi-eye-outline"
-                          class="text-none"
-                          @click="openView(item)"
-                      >
-                          View
-                      </v-btn>
-                      <v-btn
-                          size="small"
-                          variant="text"
-                          color="grey-darken-2"
-                          prepend-icon="mdi-pencil-outline"
-                          class="text-none"
-                          @click="openEdit(item)"
-                      >
-                          Edit
-                      </v-btn>
-                      <v-btn
-                          size="small"
-                          variant="text"
-                          color="error"
-                          prepend-icon="mdi-delete-outline"
-                          class="text-none"
-                          @click="openDeleteConfirm(item)"
-                      >
-                          Delete
-                      </v-btn>
-                  </div>
-              </template>
-          </v-data-table>
-      </v-card>
+      <v-row class="mt-6 align-stretch" dense>
+          <v-col cols="12" md="8">
+              <AdminAppointmentsTable
+                  :appointments="appointments"
+                  :loading="loading"
+                  :page="appointmentsPage"
+                  :total-pages="appointmentsLastPage"
+                  :status-filter="appointmentsTableStatusFilter"
+                  @refresh="refreshAppointments"
+                  @change-page="onAppointmentsPageChange"
+                  @view="openView"
+                  @edit="openEdit"
+                  @delete="openDeleteConfirm"
+              />
+          </v-col>
+          <v-col cols="12" md="4">
+              <AdminUpcomingAppointmentsBoard
+                  ref="upcomingRef"
+                  :api-base="apiBase"
+                  @view="openView"
+                  @edit="openEdit"
+                  @delete="openDeleteConfirm"
+              />
+          </v-col>
+      </v-row>
   </v-container>
 </template>
 
@@ -133,7 +71,8 @@
   });
 
   const showBooking = ref(false);
-  const loading = ref(false);
+  const analyticsRef = ref(null);
+  const upcomingRef = ref(null);
   const fetchError = ref("");
 
   const viewOpen = ref(false);
@@ -144,8 +83,15 @@
   const deleteConfirmOpen = ref(false);
   const itemToDelete = ref(null);
 
-  const config = useRuntimeConfig();
-  const apiBase = config.public.apiBase || "http://localhost:8000";
+  const apiBase = usePublicApiBase();
+
+  const loading = ref(false);
+  const appointments = ref([]);
+  const appointmentsPage = ref(1);
+  const appointmentsLastPage = ref(1);
+
+  /** Passed to the table and `GET /api/appointments`; empty string = all statuses. */
+  const appointmentsTableStatusFilter = "pending";
 
   const statusColors = {
       pending: "amber-darken-2",
@@ -186,6 +132,44 @@
       };
   }
 
+  async function loadAppointments() {
+      fetchError.value = "";
+      loading.value = true;
+      try {
+          const query = { page: appointmentsPage.value };
+          if (appointmentsTableStatusFilter) {
+              query.status = appointmentsTableStatusFilter;
+          }
+          const res = await $fetch(`${apiBase.value}/api/appointments`, { query });
+          if (res && Array.isArray(res.data)) {
+              appointments.value = res.data.map(mapAppointment);
+              appointmentsLastPage.value = Math.max(1, Number(res.last_page) || 1);
+              if (res.current_page != null) {
+                  appointmentsPage.value = Number(res.current_page);
+              }
+          } else {
+              appointments.value = [];
+              appointmentsLastPage.value = 1;
+          }
+      } catch (e) {
+          console.error(e);
+          fetchError.value = "Could not load appointments. Is the API running?";
+          appointments.value = [];
+          appointmentsLastPage.value = 1;
+      } finally {
+          loading.value = false;
+      }
+  }
+
+  function refreshAppointments() {
+      loadAppointments();
+  }
+
+  function onAppointmentsPageChange(page) {
+      appointmentsPage.value = page;
+      loadAppointments();
+  }
+
   function openView(item) {
       viewing.value = item;
       viewOpen.value = true;
@@ -215,38 +199,22 @@
           editing.value = null;
       }
       itemToDelete.value = null;
+      refreshDashboard();
+  }
+
+  function refreshAnalytics() {
+      analyticsRef.value?.reload?.();
+  }
+
+  function refreshDashboard() {
+      upcomingRef.value?.reload?.();
+      refreshAnalytics();
       loadAppointments();
   }
 
-  const appointments = ref([]);
-
-  const tableHeaders = [
-      { title: "Patient", key: "name", sortable: true },
-      { title: "Service", key: "service", sortable: true },
-      { title: "Date & Time", key: "date", sortable: true },
-      { title: "Status", key: "status", sortable: true },
-      { title: "Actions", key: "actions", align: "end", sortable: false, minWidth: "300px" },
-  ];
-
-  async function loadAppointments() {
-      fetchError.value = "";
-      loading.value = true;
-      try {
-          const rows = await $fetch(`${apiBase}/api/appointments`, {
-              query: { limit: 50 },
-          });
-          appointments.value = Array.isArray(rows) ? rows.map(mapAppointment) : [];
-      } catch (e) {
-          console.error(e);
-          fetchError.value = "Could not load appointments. Is the API running?";
-          appointments.value = [];
-      } finally {
-          loading.value = false;
-      }
-  }
-
-  function refreshAppointments() {
-      loadAppointments();
+  function onAppointmentSaved() {
+      appointmentsPage.value = 1;
+      refreshDashboard();
   }
 
   onMounted(() => {
@@ -255,25 +223,6 @@
 </script>
 
 <style scoped>
-  .stat-card,
-  .appointments-card,
-  .appointments-table,
-  .appointments-table :deep(.v-data-table__thead),
-  .appointments-table :deep(.v-data-table__tbody) {
-      background-color: white !important;
-      color: #333333 !important;
-  }
-
-  .appointments-table :deep(th) {
-      font-weight: 700 !important;
-      color: #616161 !important;
-  }
-
-  .stat-card,
-  .appointments-card {
-      border-color: #ededed !important;
-  }
-
   .dashboard-container {
       background-color: #f9fafb !important;
       min-height: 100vh;

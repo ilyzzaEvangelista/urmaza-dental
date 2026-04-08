@@ -33,7 +33,7 @@
           <v-btn color="error" variant="text" prepend-icon="mdi-logout" class="font-weight-bold" @click="logout">
               Logout
           </v-btn>
-          <v-btn icon="mdi-account-circle-outline" color="grey-darken-1" class="ml-2 mr-2"></v-btn>
+          <!-- <v-btn icon="mdi-account-circle-outline" color="grey-darken-1" class="ml-2 mr-2"></v-btn> -->
       </v-app-bar>
 
       <!-- Content -->
@@ -44,6 +44,8 @@
 </template>
 
 <script setup>
+  const apiBase = usePublicApiBase();
+
   const drawer = ref(true);
 
   const navItems = [
@@ -58,7 +60,7 @@
       const token = useCookie("auth_token");
 
       try {
-          await $fetch("http://localhost:8000/api/logout", {
+          await $fetch(`${apiBase.value}/api/logout`, {
               method: "POST",
               headers: {
                   Authorization: `Bearer ${token.value}`,

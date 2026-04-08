@@ -232,6 +232,8 @@
 </template>
 
 <script setup>
+  import { resolveApiBaseString } from "~/utils/apiBase";
+
   const props = defineProps({
     apiBase: {
       type: String,
@@ -256,6 +258,8 @@
   const deleteConfirmOpen = defineModel("deleteConfirmOpen", { type: Boolean, default: false });
 
   const emit = defineEmits(["saved", "deleted", "error"]);
+
+  const apiOrigin = computed(() => resolveApiBaseString(props.apiBase));
 
   const attachmentLoadError = ref(false);
   const editSaving = ref(false);
@@ -348,7 +352,7 @@
     const p = String(path).trim();
     if (/^https?:\/\//i.test(p)) return p;
     const key = p.replace(/^\/+/, "").replace(/^storage\//, "");
-    return `${String(props.apiBase).replace(/\/$/, "")}/storage/${key}`;
+    return `${apiOrigin.value}/storage/${key}`;
   }
 
   async function saveEdit() {
@@ -378,7 +382,7 @@
     editSaving.value = true;
     emit("error", "");
     try {
-      await $fetch(`${props.apiBase}/api/appointments/${e.id}`, {
+      await $fetch(`${apiOrigin.value}/api/appointments/${e.id}`, {
         method: "PUT",
         body: {
           name: e.name,
@@ -413,7 +417,7 @@
     deleteSaving.value = true;
     emit("error", "");
     try {
-      await $fetch(`${props.apiBase}/api/appointments/${row.id}`, {
+      await $fetch(`${apiOrigin.value}/api/appointments/${row.id}`, {
         method: "DELETE",
       });
       deleteConfirmOpen.value = false;

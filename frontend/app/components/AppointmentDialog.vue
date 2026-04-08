@@ -170,8 +170,7 @@
 
   const emit = defineEmits(["update:modelValue", "success"]);
 
-  const config = useRuntimeConfig();
-  const apiBase = computed(() => config.public.apiBase || "http://localhost:8000");
+  const apiBase = usePublicApiBase();
 
   const internalValue = computed({
       get: () => props.modelValue,

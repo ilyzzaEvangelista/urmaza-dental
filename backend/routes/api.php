@@ -16,5 +16,7 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 Route::get('appointments/availability', [AppointmentController::class, 'availability']);
+Route::get('appointments/analytics/patients', [AppointmentController::class, 'patientAnalytics']);
+Route::get('appointments/week', [AppointmentController::class, 'week']);
 Route::apiResource('appointments', AppointmentController::class);
 Route::get('services', [ServiceController::class, 'index']);

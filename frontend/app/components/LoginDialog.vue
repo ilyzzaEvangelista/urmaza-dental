@@ -67,6 +67,8 @@
 
     const loading = ref(false);
 
+    const apiBase = usePublicApiBase();
+
     const close = () => {
         internalValue.value = false;
     };
@@ -74,7 +76,7 @@
     const login = async () => {
         loading.value = true;
         try {
-            const response = await $fetch("http://localhost:8000/api/login", {
+            const response = await $fetch(`${apiBase.value}/api/login`, {
                 method: "POST",
                 body: {
                     email: form.value.email,
