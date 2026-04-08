@@ -53,7 +53,7 @@
       { title: "Appointments", icon: "mdi-calendar-clock", to: "/admin/appointments" },
       { title: "Patients", icon: "mdi-account-group", to: "/admin/patients" },
       { title: "Services", icon: "mdi-stethoscope", to: "/admin/services" },
-      { title: "Settings", icon: "mdi-cog-outline", to: "/admin/settings" },
+    //   { title: "Settings", icon: "mdi-cog-outline", to: "/admin/settings" },
   ];
 
   const logout = async () => {
