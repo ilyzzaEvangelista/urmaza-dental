@@ -62,7 +62,7 @@
                       <div class="font-weight-bold">{{ item.name }}</div>
                       <div class="text-caption text-grey-darken-1">
                           <v-icon icon="mdi-phone" color="primary-blue" size="small" class="mr-1"></v-icon>
-                          Contact: {{ item.phone }}
+                          <p class="text-caption text-grey-darken-1">Phone No. : {{ item.phone }}</p>
                       </div>
                   </div>
               </div>

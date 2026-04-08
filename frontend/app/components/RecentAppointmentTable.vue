@@ -3,7 +3,7 @@
     
       <v-card-title class="pa-6 d-flex flex-column flex-sm-row align-stretch align-sm-center flex-wrap ga-4">
           <div v-if="statusFilter" class="d-flex align-center ga-2 w-100 mb-1">
-              <span class="text-subtitle-2 font-weight-bold text-grey-darken-4">Recent Appointments (Reserved and Confirmed)</span>
+              <span class="text-subtitle-2 font-weight-bold text-grey-darken-4">Reserved and Confirmed Appointments</span>
           </div>
           <v-text-field
               v-model="searchQuery"
@@ -66,7 +66,7 @@
                       <div class="font-weight-bold">{{ item.name }}</div>
                       <div class="text-caption text-grey-darken-1">
                           <v-icon icon="mdi-phone" color="primary-blue" size="small" class="mr-1"></v-icon>
-                          Contact: {{ item.phone }}
+                          Contact No. : {{ item.phone }}
                       </div>
                   </div>
               </div>

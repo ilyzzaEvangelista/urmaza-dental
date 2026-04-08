@@ -168,6 +168,65 @@ class AppointmentController extends Controller
     }
 
     /**
+     * Days in a calendar month that have reserved (pending) or confirmed appointments.
+     * Query: year (int), month (1–12).
+     *
+     * @return array{year: int, month: int, marked_dates: array<string, array{pending: bool, confirmed: bool}>, appointments_by_date: array<string, list<array{name: string, service: string, status: string}>>}
+     */
+    public function calendarMonth(Request $request)
+    {
+        $validated = $request->validate([
+            'year' => 'required|integer|min:2000|max:2100',
+            'month' => 'required|integer|min:1|max:12',
+        ]);
+
+        $tz = config('app.timezone');
+        $year = (int) $validated['year'];
+        $month = (int) $validated['month'];
+
+        $start = Carbon::create($year, $month, 1, 0, 0, 0, $tz)->startOfDay();
+        $end = $start->copy()->endOfMonth();
+
+        $appointments = Appointment::query()
+            ->whereBetween('appointment_date', [$start, $end])
+            ->whereIn('status', ['pending', 'confirmed'])
+            ->orderBy('appointment_date')
+            ->get(['appointment_date', 'status', 'name', 'service']);
+
+        $marked = [];
+        $byDate = [];
+        foreach ($appointments as $a) {
+            $key = $a->appointment_date->clone()->timezone($tz)->format('Y-m-d');
+            if (! isset($marked[$key])) {
+                $marked[$key] = ['pending' => false, 'confirmed' => false];
+            }
+            $s = strtolower((string) $a->status);
+            if ($s === 'pending') {
+                $marked[$key]['pending'] = true;
+            }
+            if ($s === 'confirmed') {
+                $marked[$key]['confirmed'] = true;
+            }
+            if (! isset($byDate[$key])) {
+                $byDate[$key] = [];
+            }
+            $byDate[$key][] = [
+                'name' => $a->name,
+                'service' => $a->service,
+                'status' => $s,
+            ];
+        }
+        ksort($marked);
+
+        return response()->json([
+            'year' => $year,
+            'month' => $month,
+            'marked_dates' => $marked,
+            'appointments_by_date' => $byDate,
+        ]);
+    }
+
+    /**
      * Patients derived from appointments, grouped by email (one patient can have many visits).
      * Query: page, per_page (max 50), search (optional — filters by name or email).
      */

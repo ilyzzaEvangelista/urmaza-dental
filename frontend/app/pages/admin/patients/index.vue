@@ -1,22 +1,19 @@
 <template>
   <v-container fluid class="pa-8 patients-page">
       <div class="d-flex align-center flex-wrap ga-4 mb-6">
-          <h1 class="text-h5 font-weight-bold text-grey-darken-4">Patients</h1>
-          <p class="text-body-2 text-medium-emphasis mb-0">
-              Grouped by email — each patient can have multiple appointments. Add internal notes under
-              <strong>Doctor&rsquo;s comment</strong>.
-          </p>
-          <v-spacer />
+          <h1 class="text-h5 font-weight-bold text-grey-darken-4">List of Patients</h1>
+      </div>
+
+      <div class="d-flex align-center flex-wrap ga-4 mb-6">
           <v-text-field
               v-model="search"
               density="comfortable"
               variant="outlined"
               hide-details
-              clearable
               placeholder="Search name or email"
               prepend-inner-icon="mdi-magnify"
               class="patients-search"
-              style="max-width: 280px"
+              style="max-width: 500px"
           />
       </div>
 
@@ -160,7 +157,7 @@
 
   const statusColors = {
       pending: "amber-darken-2",
-      confirmed: "primary-blue",
+      confirmed: "teal-lighten-1",
       completed: "success",
       cancelled: "error",
       no_show: "grey-darken-1",

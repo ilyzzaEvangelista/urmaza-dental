@@ -90,7 +90,7 @@
 
   const statusColors = {
       pending: "amber-darken-2",
-      confirmed: "primary-blue",
+      confirmed: "teal-lighten-1",
       completed: "success",
       cancelled: "error",
   };
