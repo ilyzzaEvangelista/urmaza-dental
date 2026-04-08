@@ -1,106 +1,111 @@
 <template>
-  <div class="bg-gray-50 min-h-screen">
+  <div>
     <!-- Hero Section -->
-    <section class="py-20">
-      <div class="container mx-auto px-4">
-        <div class="flex flex-col md:flex-row items-center justify-center gap-12">
-          <div class="w-full md:w-1/2 flex justify-center">
-            <img
-              src="~/assets/images/logo.png"
-              alt="Urmaza Dental Logo"
-              class="max-w-[300px] md:max-w-[400px] object-contain drop-shadow-xl"
-            />
-          </div>
-          <div class="w-full md:w-1/2 text-center md:text-left">
-            <h1 class="text-primary-blue leading-tight mb-8">
-              <span class="text-5xl md:text-7xl font-light tracking-wider lowercase block mb-2">urmaza</span>
-              <span class="text-4xl md:text-5xl font-bold tracking-[0.2em] uppercase block">DENTAL CLINIC</span>
-            </h1>
-            <button
-              class="bg-primary-blue hover:bg-blue-700 text-white text-lg font-semibold py-4 px-10 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+    <section class="hero-section py-16">
+      <v-container>
+        <v-row align="center" justify="center">
+          <v-col cols="12" md="5" class="d-flex justify-center">
+            <v-img
+              src="/icon.png"
+              max-width="350"
+              contain
+              class="hero-logo"
+            ></v-img>
+          </v-col>
+          <v-col cols="12" md="6" class="text-center text-md-left">
+            <v-img
+              src="/cover.png"
+              max-width="450"
+              contain
+              class="mx-auto mx-md-0 mb-6"
+            ></v-img>
+            <v-btn
+              color="primary"
+              size="large"
+              class="mt-2 rounded-lg px-8"
+              elevation="2"
             >
               BOOK AN APPOINTMENT
-            </button>
-          </div>
-        </div>
-      </div>
+            </v-btn>
+          </v-col>
+        </v-row>
+      </v-container>
     </section>
 
     <!-- Testimonials Section -->
-    <section class="py-24 bg-white">
-      <div class="container mx-auto px-4">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div v-for="(testimonial, index) in testimonials" :key="index" 
-            class="p-8 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow duration-300 bg-white group"
-          >
-            <div class="mb-6 text-gray-400 group-hover:text-secondary-yellow transition-colors">
-              <span class="text-4xl">"</span>
-            </div>
-            <p class="text-gray-600 italic text-lg mb-8 leading-relaxed">
-              {{ testimonial.text }}
-            </p>
-            <div class="border-t border-gray-50 pt-6">
-              <h3 class="text-xl font-bold text-gray-900">{{ testimonial.name }}</h3>
-              <p class="text-sm text-gray-500 font-medium">{{ testimonial.title }}</p>
-            </div>
-          </div>
-        </div>
-      </div>
+    <section class="testimonials-section py-16 bg-white">
+      <v-container>
+        <v-row>
+          <v-col v-for="(testimonial, index) in testimonials" :key="index" cols="12" md="4">
+            <v-card class="card-testimonial pa-6 text-center" flat>
+              <p class="text-body-1 italic mb-6 text-grey-darken-2">
+                "{{ testimonial.text }}"
+              </p>
+              <v-divider class="mb-4"></v-divider>
+              <h3 class="text-h6 font-weight-bold mb-1">{{ testimonial.name }}</h3>
+              <p class="text-caption text-grey-darken-1">{{ testimonial.title }}</p>
+            </v-card>
+          </v-col>
+        </v-row>
+      </v-container>
     </section>
 
     <!-- About Section -->
-    <section class="py-24">
-      <div class="container mx-auto px-4">
-        <div class="flex flex-col md:flex-row items-center gap-16">
-          <div class="w-full md:w-3/5">
-            <p class="text-2xl text-gray-700 leading-relaxed font-light">
-              Experience modern dental care with state-of-the-art facilities and a compassionate team dedicated to your oral health journey. We use the latest technology to ensure your comfort and the best results for your smile.
+    <section class="about-section py-16">
+      <v-container>
+        <v-row align="center">
+          <v-col cols="12" md="7" class="text-center text-md-left">
+            <p class="text-h6 text-grey-darken-3 leading-relaxed mb-0">
+              Lorem ipsum dolor sit amet consectetur adipisicing elit dictumst tempus,
+              condimentum massa habitasse commodo primis feugiat sagittis id, scelerisque
+              mus montes aptent pharetra gravida nostra molestie.
             </p>
-          </div>
-          <div class="w-full md:w-2/5 flex justify-center">
-            <img
-              src="~/assets/images/logo.png"
-              alt="About Logo"
-              class="max-w-[200px] opacity-40 grayscale hover:grayscale-0 transition-all duration-500"
-            />
-          </div>
-        </div>
-      </div>
+          </v-col>
+          <v-col cols="12" md="5" class="d-flex justify-center">
+            <v-img
+              src="/icon.png"
+              max-width="250"
+              contain
+              class="about-logo opacity-60"
+            ></v-img>
+          </v-col>
+        </v-row>
+      </v-container>
     </section>
 
     <!-- Contact Section -->
-    <section class="py-24 bg-gray-50 text-center">
-      <div class="container mx-auto px-4 max-w-2xl">
-        <h2 class="text-5xl font-medium text-gray-900 mb-16">Contact Us</h2>
-        <form class="space-y-6">
-          <input
-            type="text"
-            placeholder="Your Name"
-            class="w-full px-6 py-4 rounded-xl border border-gray-200 focus:border-primary-blue focus:ring-2 focus:ring-blue-100 outline-none transition-all text-lg"
-          />
-          <input
-            type="email"
-            placeholder="Your Email"
-            class="w-full px-6 py-4 rounded-xl border border-gray-200 focus:border-primary-blue focus:ring-2 focus:ring-blue-100 outline-none transition-all text-lg"
-          />
-          
-          <div class="flex justify-center gap-8 py-8">
-            <a href="#" class="text-gray-400 hover:text-primary-blue transition-colors duration-300">
-              <v-icon icon="mdi-facebook" size="x-large"></v-icon>
-            </a>
-            <a href="#" class="text-gray-400 hover:text-primary-blue transition-colors duration-300">
-              <v-icon icon="mdi-instagram" size="x-large"></v-icon>
-            </a>
-            <a href="#" class="text-gray-400 hover:text-primary-blue transition-colors duration-300">
-              <v-icon icon="mdi-twitter" size="x-large"></v-icon>
-            </a>
-          </div>
+    <section class="contact-section text-center">
+      <v-container>
+        <h2 class="text-h3 font-weight-medium mb-10">Contact Us</h2>
+        <v-row justify="center">
+          <v-col cols="12" md="8" lg="6">
+            <v-form>
+              <v-text-field
+                label="Your Name"
+                variant="outlined"
+                class="mb-4"
+                rounded="lg"
+              ></v-text-field>
+              <v-text-field
+                label="Your Email"
+                variant="outlined"
+                class="mb-8"
+                rounded="lg"
+              ></v-text-field>
+              
+              <div class="social-icons d-flex justify-center gap-6 mb-8">
+                <v-icon icon="mdi-facebook" size="x-large" color="grey-darken-1" class="cursor-pointer"></v-icon>
+                <v-icon icon="mdi-instagram" size="x-large" color="grey-darken-1" class="cursor-pointer"></v-icon>
+                <v-icon icon="mdi-twitter" size="x-large" color="grey-darken-1" class="cursor-pointer"></v-icon>
+              </div>
 
-          <p class="text-sm text-gray-400 tracking-wide pt-8">
-            © 2025 URMAZA Dental Clinic. All rights reserved.
-          </p>
-        </form>
-      </div>
+              <p class="text-caption text-grey-darken-1">
+                © 2025 URMAZA Dental Clinic. All rights reserved.
+              </p>
+            </v-form>
+          </v-col>
+        </v-row>
+      </v-container>
     </section>
   </div>
 </template>
@@ -125,6 +130,48 @@ const testimonials = [
 ]
 </script>
 
-<style scoped>
-/* No extra SCSS needed! Tailwind handles it all. */
+<style scoped lang="scss">
+.hero-section {
+  .clinic-name {
+    line-height: 1.1;
+    .lower {
+      font-size: 3.5rem;
+      font-weight: 300;
+      letter-spacing: 2px;
+      text-transform: lowercase;
+    }
+    .upper {
+      font-size: 2.5rem;
+      font-weight: 700;
+      letter-spacing: 4px;
+    }
+  }
+}
+
+.card-testimonial {
+  background-color: white;
+  .italic {
+    font-style: italic;
+  }
+}
+
+.leading-relaxed {
+  line-height: 1.8;
+}
+
+.gap-6 {
+  gap: 24px;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+  transition: color 0.2s;
+  &:hover {
+    color: var(--primary-blue) !important;
+  }
+}
+
+.about-logo {
+  filter: grayscale(0.2);
+}
 </style>

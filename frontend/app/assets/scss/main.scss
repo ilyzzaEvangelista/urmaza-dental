@@ -51,3 +51,7 @@ body {
   border-top: 1px solid #E5E7EB;
 }
 
+.brightness-white {
+  filter: brightness(0) invert(1);
+}
+

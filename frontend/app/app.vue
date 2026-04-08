@@ -1,28 +1,23 @@
 <template>
   <v-app>
     <!-- Navigation Bar -->
-    <header class="bg-primary-blue h-[80px] flex items-center shadow-md sticky top-0 z-50">
-      <div class="container mx-auto px-4 flex items-center justify-between">
-        <h1 class="text-white text-2xl font-bold tracking-wider uppercase">
-          Urmaza Dental Clinic
-        </h1>
-        
-        <div class="flex items-center gap-6">
-          <nav class="hidden md:flex items-center gap-8">
-            <NuxtLink to="/" class="text-white hover:text-blue-200 transition-colors font-medium">Home</NuxtLink>
-          </nav>
-          
-          <div class="flex items-center gap-3">
-            <button class="p-2 text-white hover:bg-white/10 rounded-full transition-colors">
-              <v-icon icon="mdi-menu" size="large"></v-icon>
-            </button>
-            <button class="p-2 text-white hover:bg-white/10 rounded-full transition-colors">
-              <v-icon icon="mdi-logout" size="large"></v-icon>
-            </button>
-          </div>
+    <v-app-bar color="primary-blue" flat height="70">
+      <v-container class="d-flex align-center">
+        <div class="d-flex align-center">
+          <v-img src="/icon.png" width="40" height="40" contain class="mr-2"></v-img>
+          <v-img src="/cover.png" width="150" height="30" contain theme="dark" class="brightness-white"></v-img>
         </div>
-      </div>
-    </header>
+        
+        <v-spacer></v-spacer>
+        
+        <div class="hidden-sm-and-down">
+          <v-btn variant="text" color="white" to="/">Home</v-btn>
+        </div>
+        
+        <v-btn icon="mdi-menu" color="white" class="ml-2"></v-btn>
+        <v-btn icon="mdi-logout" color="white" class="ml-2"></v-btn>
+      </v-container>
+    </v-app-bar>
 
     <v-main>
       <NuxtPage />
@@ -31,17 +26,13 @@
 </template>
 
 <script setup>
+// Header buttons and logic
 </script>
 
 <style>
-/* Global Tailwind Base */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
+/* Global styles if needed */
 .v-application {
-  background-color: transparent !important;
+  background-color: var(--bg-light) !important;
 }
 </style>
-
 
