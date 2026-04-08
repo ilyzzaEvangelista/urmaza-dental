@@ -4,10 +4,52 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Appointment;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class AppointmentController extends Controller
 {
+    /**
+     * Normalize request datetime strings (naive or ISO) to the app timezone.
+     */
+    protected function normalizeAppointmentMoment(string $value): Carbon
+    {
+        return Carbon::parse($value)->setTimezone(config('app.timezone'))->startOfMinute();
+    }
+
+    /**
+     * Check if the given minute slot already has an appointment.
+     */
+    protected function slotOccupied(Carbon $moment, ?int $exceptId = null): bool
+    {
+        $start = $moment->copy()->startOfMinute();
+        $end = $moment->copy()->endOfMinute();
+
+        $query = Appointment::query()
+            ->whereBetween('appointment_date', [$start, $end]);
+
+        if ($exceptId !== null) {
+            $query->where('id', '!=', $exceptId);
+        }
+
+        return $query->exists();
+    }
+
+    public function availability(Request $request)
+    {
+        $request->validate([
+            'datetime' => 'required|date',
+            'except_id' => 'sometimes|integer|exists:appointments,id',
+        ]);
+
+        $moment = $this->normalizeAppointmentMoment($request->query('datetime'));
+        $exceptId = $request->filled('except_id') ? (int) $request->query('except_id') : null;
+
+        return response()->json([
+            'available' => ! $this->slotOccupied($moment, $exceptId),
+        ]);
+    }
+
     public function index(Request $request)
     {
         $limit = (int) $request->query('limit', 50);
@@ -39,6 +81,14 @@ class AppointmentController extends Controller
             $validated['image'] = $path;
         }
 
+        $validated['appointment_date'] = $this->normalizeAppointmentMoment($validated['appointment_date']);
+
+        if ($this->slotOccupied($validated['appointment_date'])) {
+            return response()->json([
+                'message' => 'That date and time is already reserved. Please choose another slot.',
+            ], 422);
+        }
+
         $appointment = Appointment::create($validated);
 
         return response()->json([
@@ -64,6 +114,16 @@ class AppointmentController extends Controller
             'appointment_date' => 'sometimes|date',
             'note' => 'nullable|string',
         ]);
+
+        if (array_key_exists('appointment_date', $validated)) {
+            $validated['appointment_date'] = $this->normalizeAppointmentMoment($validated['appointment_date']);
+
+            if ($this->slotOccupied($validated['appointment_date'], $appointment->id)) {
+                return response()->json([
+                    'message' => 'That date and time is already reserved. Please choose another slot.',
+                ], 422);
+            }
+        }
 
         $appointment->update($validated);
 

@@ -126,6 +126,8 @@
 </template>
 
 <script setup>
+  import { appointmentPartsFromApi } from "~/utils/appointmentDatetime";
+
   definePageMeta({
       layout: "admin",
   });
@@ -160,17 +162,10 @@
       return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   }
 
-  function formatAppointmentDate(isoDate) {
-      if (!isoDate) return "—";
-      const s = String(isoDate).slice(0, 10);
-      const d = new Date(`${s}T12:00:00`);
-      if (Number.isNaN(d.getTime())) return "—";
-      return d.toLocaleDateString("en-PH", { year: "numeric", month: "short", day: "numeric" });
-  }
-
   function mapAppointment(row) {
       const status = String(row.status || "pending").toLowerCase();
       const label = status.charAt(0).toUpperCase() + status.slice(1);
+      const parts = appointmentPartsFromApi(row.appointment_date);
       return {
           id: row.id,
           name: row.name,
@@ -179,14 +174,14 @@
           email: row.email,
           age: row.age,
           service: row.service,
-          date: formatAppointmentDate(row.appointment_date),
-          time: "",
+          date: parts.dateLabel,
+          time: parts.timeLabel,
           status: label,
           statusColor: statusColors[status] || "grey",
           initials: initialsFromName(row.name),
           note: row.note || "",
           image: row.image || null,
-          appointment_date_raw: String(row.appointment_date || "").slice(0, 10),
+          appointment_date_raw: parts.rawLocal,
           statusKey: status,
       };
   }

@@ -15,5 +15,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('logout', [AuthController::class, 'logout']);
 });
 
+Route::get('appointments/availability', [AppointmentController::class, 'availability']);
 Route::apiResource('appointments', AppointmentController::class);
 Route::get('services', [ServiceController::class, 'index']);

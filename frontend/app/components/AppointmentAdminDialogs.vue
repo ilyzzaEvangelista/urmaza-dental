@@ -40,9 +40,10 @@
             </v-list-item-subtitle>
           </v-list-item>
           <v-list-item class="px-0 mt-3">
-            <v-list-item-title class="text-caption text-grey-darken-1">Appointment date</v-list-item-title>
+            <v-list-item-title class="text-caption text-grey-darken-1">Appointment date & time</v-list-item-title>
             <v-list-item-subtitle class="text-body-1 text-high-emphasis opacity-100 mt-1">
-              {{ viewing.date }}
+              <div>{{ viewing.date }}</div>
+              <div v-if="viewing.time" class="text-caption text-medium-emphasis mt-1">{{ viewing.time }}</div>
             </v-list-item-subtitle>
           </v-list-item>
           <v-list-item class="px-0 mt-3">
@@ -141,13 +142,36 @@
           ></v-select>
           <v-text-field
             v-model="editing.appointment_date_raw"
-            label="Appointment date"
-            type="date"
+            label="Appointment date & time"
+            type="datetime-local"
             variant="outlined"
             density="comfortable"
-            class="mb-3"
+            class="mb-2"
+            hint="Philippine time (Asia/Manila)."
+            persistent-hint
+            :loading="editSlotAvailability === 'checking'"
             :rules="[v => !!v || 'Required']"
           ></v-text-field>
+          <v-alert
+            v-if="editSlotAvailability === 'taken'"
+            type="warning"
+            variant="tonal"
+            density="compact"
+            rounded="lg"
+            class="mb-4 text-body-2"
+          >
+            This date and time is already reserved. Please pick another slot.
+          </v-alert>
+          <v-alert
+            v-else-if="editSlotAvailability === 'error'"
+            type="error"
+            variant="tonal"
+            density="compact"
+            rounded="lg"
+            class="mb-4 text-body-2"
+          >
+            Could not verify availability. Check your connection and try again.
+          </v-alert>
           <v-select
             v-model="editing.statusKey"
             label="Status"
@@ -177,6 +201,7 @@
           class="text-white"
           rounded="lg"
           :loading="editSaving"
+          :disabled="editSaveDisabled"
           @click="saveEdit"
         >
           Save
@@ -237,6 +262,14 @@
   const deleteSaving = ref(false);
   const editFormRef = ref(null);
 
+  /** null | 'checking' | 'available' | 'taken' | 'error' */
+  const editSlotAvailability = ref(null);
+  let editAvailabilityDebounce = null;
+
+  const editSaveDisabled = computed(() => {
+    return editSlotAvailability.value === "taken" || editSlotAvailability.value === "checking";
+  });
+
   const serviceOptions = [
     "Oral Prophylaxis",
     "Tooth Restoration",
@@ -272,6 +305,44 @@
     },
   );
 
+  async function checkEditSlotAvailability(datetime, exceptId) {
+    if (!datetime) {
+      editSlotAvailability.value = null;
+      return;
+    }
+    editSlotAvailability.value = "checking";
+    try {
+      const result = await $fetch(`${props.apiBase}/api/appointments/availability`, {
+        query: {
+          datetime,
+          except_id: exceptId,
+        },
+      });
+      editSlotAvailability.value = result.available ? "available" : "taken";
+    } catch {
+      editSlotAvailability.value = "error";
+    }
+  }
+
+  watch(
+    [editOpen, () => props.editing?.appointment_date_raw, () => props.editing?.id],
+    ([open, dt, id]) => {
+      if (editAvailabilityDebounce) clearTimeout(editAvailabilityDebounce);
+      if (!open) {
+        editSlotAvailability.value = null;
+        return;
+      }
+      if (!dt || id == null) {
+        editSlotAvailability.value = null;
+        return;
+      }
+      editSlotAvailability.value = null;
+      editAvailabilityDebounce = setTimeout(() => {
+        checkEditSlotAvailability(dt, id);
+      }, 450);
+    },
+  );
+
   function resolvedStorageUrl(path) {
     if (!path) return "";
     const p = String(path).trim();
@@ -290,6 +361,20 @@
     const e = props.editing;
     if (!e) return;
 
+    if (e.appointment_date_raw) {
+      await checkEditSlotAvailability(e.appointment_date_raw, e.id);
+    }
+
+    if (editSlotAvailability.value === "taken") {
+      emit("error", "That time slot is already reserved. Choose another date and time.");
+      return;
+    }
+
+    if (editSlotAvailability.value === "error") {
+      emit("error", "Could not verify the time slot. Try again.");
+      return;
+    }
+
     editSaving.value = true;
     emit("error", "");
     try {
@@ -307,10 +392,15 @@
         },
       });
       editOpen.value = false;
+      editSlotAvailability.value = null;
       emit("saved");
     } catch (err) {
       console.error(err);
-      emit("error", "Could not save appointment.");
+      const msg =
+        err?.data?.message ||
+        err?.response?._data?.message ||
+        "Could not save appointment.";
+      emit("error", msg);
     } finally {
       editSaving.value = false;
     }

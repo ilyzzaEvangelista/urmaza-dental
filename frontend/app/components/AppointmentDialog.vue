@@ -87,15 +87,37 @@
 
                   <v-text-field
                       v-model="formData.appointment_date"
-                      label="Appointment Date"
-                      type="date"
+                      label="Appointment date & time"
+                      type="datetime-local"
                       variant="outlined"
                       density="comfortable"
-                      class="mb-4"
-                      placeholder="mm/dd/yyyy"
-                      persistent-placeholder
-                      :rules="[v => !!v || 'Date is required']"
+                      class="mb-2"
+                      hint="Philippine time (Asia/Manila). Choose when you would like to come in."
+                      persistent-hint
+                      :loading="slotAvailability === 'checking'"
+                      :rules="[v => !!v || 'Date and time are required']"
                   ></v-text-field>
+
+                  <v-alert
+                      v-if="slotAvailability === 'taken'"
+                      type="warning"
+                      variant="tonal"
+                      density="compact"
+                      rounded="lg"
+                      class="mb-4 text-body-2"
+                  >
+                      This date and time is already reserved. Please pick another slot.
+                  </v-alert>
+                  <v-alert
+                      v-else-if="slotAvailability === 'error'"
+                      type="error"
+                      variant="tonal"
+                      density="compact"
+                      rounded="lg"
+                      class="mb-4 text-body-2"
+                  >
+                      Could not verify availability. Check your connection and try again.
+                  </v-alert>
 
                   <v-textarea
                       v-model="formData.note"
@@ -130,6 +152,7 @@
                       class="font-weight-bold py-4 text-white"
                       elevation="2"
                       :loading="loading"
+                      :disabled="submitDisabled"
                       @click="submit"
                   >
                       Submit
@@ -147,6 +170,9 @@
 
   const emit = defineEmits(["update:modelValue", "success"]);
 
+  const config = useRuntimeConfig();
+  const apiBase = computed(() => config.public.apiBase || "http://localhost:8000");
+
   const internalValue = computed({
       get: () => props.modelValue,
       set: (val) => emit("update:modelValue", val),
@@ -155,6 +181,14 @@
   const form = ref(null);
   const valid = ref(false);
   const loading = ref(false);
+
+  /** null = not checked, 'checking', 'available', 'taken', 'error' */
+  const slotAvailability = ref(null);
+  let availabilityDebounce = null;
+
+  const submitDisabled = computed(() => {
+      return slotAvailability.value === "taken" || slotAvailability.value === "checking";
+  });
 
   const snackbar = ref(false);
   const snackbarText = ref("");
@@ -198,6 +232,7 @@
 
   const resetForm = () => {
       if (form.value) form.value.reset();
+      slotAvailability.value = null;
       formData.value = {
           name: "",
           age: "",
@@ -210,10 +245,52 @@
       };
   };
 
+  async function checkSlotAvailability(datetime) {
+      if (!datetime) {
+          slotAvailability.value = null;
+          return;
+      }
+      slotAvailability.value = "checking";
+      try {
+          const result = await $fetch(`${apiBase.value}/api/appointments/availability`, {
+              query: { datetime },
+          });
+          slotAvailability.value = result.available ? "available" : "taken";
+      } catch {
+          slotAvailability.value = "error";
+      }
+  }
+
+  watch(
+      () => formData.value.appointment_date,
+      (val) => {
+          slotAvailability.value = null;
+          if (availabilityDebounce) clearTimeout(availabilityDebounce);
+          if (!val) return;
+          availabilityDebounce = setTimeout(() => {
+              checkSlotAvailability(val);
+          }, 450);
+      },
+  );
+
   const submit = async () => {
       const { valid: isFormValid } = await form.value.validate();
 
       if (!isFormValid) return;
+
+      if (formData.value.appointment_date) {
+          await checkSlotAvailability(formData.value.appointment_date);
+      }
+
+      if (slotAvailability.value === "taken") {
+          showToast("That time slot is already reserved. Please choose another.", "error");
+          return;
+      }
+
+      if (slotAvailability.value === "error") {
+          showToast("Could not verify the time slot. Try again.", "error");
+          return;
+      }
 
       loading.value = true;
 
@@ -231,8 +308,7 @@
               data.append("image", formData.value.image);
           }
 
-          // Assuming Laravel is running on localhost:8000
-          const response = await $fetch("http://localhost:8000/api/appointments", {
+          const response = await $fetch(`${apiBase.value}/api/appointments`, {
               method: "POST",
               body: data,
           });
@@ -242,7 +318,11 @@
           close();
       } catch (error) {
           console.error("Submission failed:", error);
-          showToast("Failed to submit appointment. Please try again.", "error");
+          const msg =
+              error?.data?.message ||
+              error?.response?._data?.message ||
+              "Failed to submit appointment. Please try again.";
+          showToast(msg, "error");
       } finally {
           loading.value = false;
       }
