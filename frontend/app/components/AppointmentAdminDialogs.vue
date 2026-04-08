@@ -279,6 +279,7 @@
   const emit = defineEmits(["saved", "deleted", "error"]);
 
   const apiOrigin = computed(() => resolveApiBaseString(props.apiBase));
+  const authHeaders = useAuthFetchHeaders();
 
   const attachmentLoadError = ref(false);
   const editSaving = ref(false);
@@ -429,6 +430,7 @@
       try {
           await $fetch(`${apiOrigin.value}/api/appointments/${e.id}`, {
               method: "PUT",
+              headers: { ...authHeaders.value },
               body: {
                   name: e.name,
                   age: Number(e.age),
@@ -463,6 +465,7 @@
       try {
           await $fetch(`${apiOrigin.value}/api/appointments/${row.id}`, {
               method: "DELETE",
+              headers: { ...authHeaders.value },
           });
           deleteConfirmOpen.value = false;
           showToast("Appointment deleted.", "success");

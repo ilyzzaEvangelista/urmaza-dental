@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Appointment;
+use App\Models\AuditLog;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -371,9 +372,20 @@ class AppointmentController extends Controller
 
         $appointment = Appointment::create($validated);
 
+        AuditLog::record(
+            $request,
+            'appointment.created',
+            "New appointment #{$appointment->id} — {$appointment->name} ({$appointment->email})",
+            $appointment,
+            [
+                'service' => $appointment->service,
+                'status' => $appointment->status,
+            ],
+        );
+
         return response()->json([
             'message' => 'Appointment created successfully!',
-            'data' => $appointment
+            'data' => $appointment,
         ], 201);
     }
 
@@ -408,19 +420,47 @@ class AppointmentController extends Controller
 
         $appointment->update($validated);
 
+        AuditLog::record(
+            $request,
+            'appointment.updated',
+            "Updated appointment #{$appointment->id} — {$appointment->name}",
+            $appointment->fresh(),
+            [
+                'fields' => array_keys($validated),
+            ],
+        );
+
         return response()->json([
             'message' => 'Appointment updated successfully!',
-            'data' => $appointment
+            'data' => $appointment,
         ]);
     }
 
-    public function destroy(Appointment $appointment)
+    public function destroy(Request $request, Appointment $appointment)
     {
+        $id = $appointment->id;
+        $summary = sprintf(
+            'Deleted appointment #%d — %s (%s)',
+            $id,
+            $appointment->name,
+            $appointment->email
+        );
+
         // Soft delete: row is hidden via deleted_at; image kept for possible restore.
         $appointment->delete();
 
+        AuditLog::record(
+            $request,
+            'appointment.deleted',
+            $summary,
+            null,
+            [
+                'appointment_id' => $id,
+            ],
+        );
+
         return response()->json([
-            'message' => 'Appointment deleted successfully!'
+            'message' => 'Appointment deleted successfully!',
         ]);
     }
 }

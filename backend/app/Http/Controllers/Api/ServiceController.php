@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\AuditLog;
 use App\Models\Service;
 use Illuminate\Http\Request;
 
@@ -61,15 +62,35 @@ class ServiceController extends Controller
 
         $service->update($validated);
 
+        $fresh = $service->fresh();
+
+        AuditLog::record(
+            $request,
+            'service.updated',
+            "Updated service #{$fresh->id}: {$fresh->name}",
+            $fresh,
+            ['fields' => array_keys($validated)],
+        );
+
         return response()->json([
             'message' => 'Service updated.',
-            'data' => $service->fresh(),
+            'data' => $fresh,
         ]);
     }
 
-    public function destroy(Service $service)
+    public function destroy(Request $request, Service $service)
     {
+        $id = $service->id;
+        $name = $service->name;
         $service->delete();
+
+        AuditLog::record(
+            $request,
+            'service.deleted',
+            "Deleted service #{$id}: {$name}",
+            null,
+            ['service_id' => $id],
+        );
 
         return response()->json([
             'message' => 'Service deleted.',

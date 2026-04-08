@@ -132,6 +132,7 @@
   });
 
   const apiBase = usePublicApiBase();
+  const authHeaders = useAuthFetchHeaders();
   const loading = ref(false);
   const fetchError = ref("");
   const patients = ref([]);
@@ -254,6 +255,7 @@
       try {
           await $fetch(`${apiBase.value}/api/appointments/${appointmentId}`, {
               method: "PATCH",
+              headers: { ...authHeaders.value },
               body: {
                   doctor_comment: draftComment[appointmentId] ?? "",
               },

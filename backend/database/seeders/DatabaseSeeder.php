@@ -23,5 +23,9 @@ class DatabaseSeeder extends Seeder
             'email' => 'test@example.com',
             'role' => User::ROLE_ASSISTANT,
         ]);
+
+        $this->call([
+            AuditLogSeeder::class,
+        ]);
     }
 }

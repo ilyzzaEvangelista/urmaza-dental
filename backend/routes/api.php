@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AppointmentController;
+use App\Http\Controllers\Api\AuditLogController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ServiceController;
 use Illuminate\Http\Request;
@@ -13,6 +14,7 @@ Route::middleware('auth:sanctum')->group(function () {
         return $request->user();
     });
     Route::post('logout', [AuthController::class, 'logout']);
+    Route::get('audit-logs', [AuditLogController::class, 'index']);
 });
 
 Route::get('appointments/availability', [AppointmentController::class, 'availability']);
