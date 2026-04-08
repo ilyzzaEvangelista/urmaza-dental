@@ -1,22 +1,28 @@
 <template>
   <v-app>
     <!-- Navigation Bar -->
-    <v-app-bar color="primary-blue" flat height="70">
-      <v-container class="d-flex align-center">
-        <v-app-bar-title class="font-weight-bold text-white text-uppercase" style="letter-spacing: 1px">
+    <header class="bg-primary-blue h-[80px] flex items-center shadow-md sticky top-0 z-50">
+      <div class="container mx-auto px-4 flex items-center justify-between">
+        <h1 class="text-white text-2xl font-bold tracking-wider uppercase">
           Urmaza Dental Clinic
-        </v-app-bar-title>
+        </h1>
         
-        <v-spacer></v-spacer>
-        
-        <div class="hidden-sm-and-down">
-          <v-btn variant="text" color="white" to="/">Home</v-btn>
+        <div class="flex items-center gap-6">
+          <nav class="hidden md:flex items-center gap-8">
+            <NuxtLink to="/" class="text-white hover:text-blue-200 transition-colors font-medium">Home</NuxtLink>
+          </nav>
+          
+          <div class="flex items-center gap-3">
+            <button class="p-2 text-white hover:bg-white/10 rounded-full transition-colors">
+              <v-icon icon="mdi-menu" size="large"></v-icon>
+            </button>
+            <button class="p-2 text-white hover:bg-white/10 rounded-full transition-colors">
+              <v-icon icon="mdi-logout" size="large"></v-icon>
+            </button>
+          </div>
         </div>
-        
-        <v-btn icon="mdi-menu" color="white" class="ml-2"></v-btn>
-        <v-btn icon="mdi-logout" color="white" class="ml-2"></v-btn>
-      </v-container>
-    </v-app-bar>
+      </div>
+    </header>
 
     <v-main>
       <NuxtPage />
@@ -25,13 +31,17 @@
 </template>
 
 <script setup>
-// Header buttons and logic
 </script>
 
 <style>
-/* Global styles if needed */
+/* Global Tailwind Base */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 .v-application {
-  background-color: var(--bg-light) !important;
+  background-color: transparent !important;
 }
 </style>
+
 
