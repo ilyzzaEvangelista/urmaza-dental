@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Appointment;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class AppointmentController extends Controller
 {
@@ -166,20 +167,118 @@ class AppointmentController extends Controller
         ]);
     }
 
+    /**
+     * Patients derived from appointments, grouped by email (one patient can have many visits).
+     * Query: page, per_page (max 50), search (optional — filters by name or email).
+     */
+    public function patients(Request $request)
+    {
+        $validated = $request->validate([
+            'page' => 'sometimes|integer|min:1',
+            'per_page' => 'sometimes|integer|min:1|max:50',
+            'search' => 'nullable|string|max:255',
+        ]);
+
+        $page = max(1, (int) ($validated['page'] ?? 1));
+        $perPage = min(50, max(1, (int) ($validated['per_page'] ?? 10)));
+        $search = trim((string) ($validated['search'] ?? ''));
+
+        $appointments = Appointment::query()
+            ->orderByDesc('appointment_date')
+            ->orderByDesc('id')
+            ->get();
+
+        $byEmail = $appointments->groupBy(fn (Appointment $a) => strtolower(trim((string) $a->email)));
+
+        $patients = $byEmail->map(function ($rows) {
+            $sorted = $rows->sortByDesc(fn (Appointment $a) => $a->appointment_date->timestamp)->values();
+            $latest = $sorted->first();
+
+            return [
+                'email' => $latest->email,
+                'name' => $latest->name,
+                'contact_number' => $latest->contact_number,
+                'age' => $latest->age,
+                'appointment_count' => $sorted->count(),
+                'appointments' => $sorted->map(fn (Appointment $a) => [
+                    'id' => $a->id,
+                    'appointment_date' => $a->appointment_date,
+                    'service' => $a->service,
+                    'status' => $a->status,
+                    'note' => $a->note,
+                    'doctor_comment' => $a->doctor_comment,
+                ])->values()->all(),
+            ];
+        })->values();
+
+        $patients = $patients->sortByDesc(function (array $p) {
+            $dt = $p['appointments'][0]['appointment_date'] ?? null;
+
+            return $dt instanceof Carbon ? $dt->timestamp : 0;
+        })->values();
+
+        if ($search !== '') {
+            $needle = strtolower($search);
+            $patients = $patients->filter(function (array $p) use ($needle) {
+                return str_contains(strtolower((string) $p['name']), $needle)
+                    || str_contains(strtolower((string) $p['email']), $needle);
+            })->values();
+        }
+
+        $total = $patients->count();
+        $slice = $patients->forPage($page, $perPage)->values();
+
+        $paginator = new LengthAwarePaginator(
+            $slice,
+            $total,
+            $perPage,
+            $page,
+            [
+                'path' => $request->url(),
+                'query' => $request->query(),
+            ]
+        );
+
+        return $paginator->withQueryString();
+    }
+
     public function index(Request $request)
     {
-        $perPage = 10;
-
         $validated = $request->validate([
-            'status' => 'sometimes|in:pending,confirmed,completed,cancelled',
+            'per_page' => 'sometimes|integer|min:1|max:100',
         ]);
+        $perPage = (int) ($validated['per_page'] ?? 10);
 
         $query = Appointment::query()
             ->orderByDesc('appointment_date')
             ->orderByDesc('id');
 
-        if (isset($validated['status'])) {
-            $query->where('status', $validated['status']);
+        $allowed = ['pending', 'confirmed', 'completed', 'cancelled'];
+
+        if ($request->has('status')) {
+            $raw = $request->query('status');
+            if (is_array($raw)) {
+                $request->validate([
+                    'status' => 'sometimes|array',
+                    'status.*' => 'string|in:pending,confirmed,completed,cancelled',
+                ]);
+                $statuses = collect($raw)
+                    ->map(fn ($s) => strtolower((string) $s))
+                    ->unique()
+                    ->intersect($allowed)
+                    ->values()
+                    ->all();
+                if (count($statuses) > 0) {
+                    $query->whereIn('status', $statuses);
+                }
+            } else {
+                $validated = $request->validate([
+                    'status' => 'sometimes|string|in:pending,confirmed,completed,cancelled',
+                ]);
+                if (isset($validated['status'])) {
+                    $query->where('status', $validated['status']);
+                }
+            }
         }
 
         return $query->paginate($perPage);
@@ -235,6 +334,7 @@ class AppointmentController extends Controller
             'service' => 'sometimes|string|max:255',
             'appointment_date' => 'sometimes|date',
             'note' => 'nullable|string',
+            'doctor_comment' => 'nullable|string',
         ]);
 
         if (array_key_exists('appointment_date', $validated)) {

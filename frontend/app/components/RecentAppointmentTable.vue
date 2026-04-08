@@ -1,6 +1,10 @@
 <template>
   <v-card class="appointments-card rounded-xl border shadow-sm" flat>
+    
       <v-card-title class="pa-6 d-flex flex-column flex-sm-row align-stretch align-sm-center flex-wrap ga-4">
+          <div v-if="statusFilter" class="d-flex align-center ga-2 w-100 mb-1">
+              <span class="text-subtitle-2 font-weight-bold text-grey-darken-4">Recent Appointments (Reserved and Confirmed)</span>
+          </div>
           <v-text-field
               v-model="searchQuery"
               density="comfortable"
@@ -35,7 +39,7 @@
       <v-data-table
           class="appointments-table px-4 text-grey-darken-3"
           :headers="tableHeaders"
-          :items="filteredAppointments"
+          :items="displayedAppointments"
           :loading="loading"
           item-value="id"
           :items-per-page="-1"
@@ -118,18 +122,6 @@
               </div>
           </template>
       </v-data-table>
-
-      <v-card-actions v-if="totalPages > 1" class="justify-center pb-4 pt-0 flex-wrap">
-          <v-pagination
-              :model-value="page"
-              :length="totalPages"
-              :total-visible="7"
-              density="comfortable"
-              rounded="circle"
-              color="primary-blue"
-              @update:model-value="emit('change-page', $event)"
-          />
-      </v-card-actions>
   </v-card>
 </template>
 
@@ -143,19 +135,29 @@
           type: Boolean,
           default: false,
       },
-      /** Current page from Laravel pagination (1-based). */
-      page: {
-          type: Number,
-          default: 1,
-      },
-      /** Total page count from Laravel `last_page`. `length` on v-pagination = pages, not row count. */
-      totalPages: {
-          type: Number,
-          default: 1,
+      /** When set, parent filters by status (string or list). */
+      statusFilter: {
+          type: [String, Array],
+          default: undefined,
       },
   });
 
-  const emit = defineEmits(["refresh", "view", "edit", "delete", "change-page"]);
+  const emit = defineEmits(["refresh", "view", "edit", "delete"]);
+
+  const statusFilterLabel = computed(() => {
+      const s = props.statusFilter;
+      if (s == null || s === "") return "";
+      if (Array.isArray(s)) {
+          return s
+              .filter((x) => x != null && String(x).trim() !== "")
+              .map((x) => String(x).charAt(0).toUpperCase() + String(x).slice(1).toLowerCase())
+              .join(", ");
+      }
+      if (typeof s === "string") {
+          return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+      }
+      return "";
+  });
 
   const searchQuery = ref("");
 
@@ -186,6 +188,10 @@
           return tokens.every((t) => haystack.includes(t));
       });
   });
+
+  /** API returns newest first; show at most this many rows. */
+  const maxRows = 10;
+  const displayedAppointments = computed(() => filteredAppointments.value.slice(0, maxRows));
 
   const emptyMessage = computed(() => {
       if (searchActive.value && props.appointments?.length) {

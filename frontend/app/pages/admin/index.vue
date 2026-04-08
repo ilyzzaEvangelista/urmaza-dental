@@ -37,14 +37,11 @@
 
       <v-row class="mt-6 align-stretch" dense>
           <v-col cols="12" md="8">
-              <AdminAppointmentsTable
+              <RecentAppointmentTable
                   :appointments="appointments"
                   :loading="loading"
-                  :page="appointmentsPage"
-                  :total-pages="appointmentsLastPage"
                   :status-filter="appointmentsTableStatusFilter"
                   @refresh="refreshAppointments"
-                  @change-page="onAppointmentsPageChange"
                   @view="openView"
                   @edit="openEdit"
                   @delete="openDeleteConfirm"
@@ -87,11 +84,9 @@
 
   const loading = ref(false);
   const appointments = ref([]);
-  const appointmentsPage = ref(1);
-  const appointmentsLastPage = ref(1);
 
-  /** Passed to the table and `GET /api/appointments`; empty string = all statuses. */
-  const appointmentsTableStatusFilter = "pending";
+  /** Passed to the table and `GET /api/appointments`. Empty array = all statuses. */
+  const appointmentsTableStatusFilter = ["pending", "confirmed"];
 
   const statusColors = {
       pending: "amber-darken-2",
@@ -136,37 +131,30 @@
       fetchError.value = "";
       loading.value = true;
       try {
-          const query = { page: appointmentsPage.value };
-          if (appointmentsTableStatusFilter) {
-              query.status = appointmentsTableStatusFilter;
+          const query = { page: 1, per_page: 10 };
+          const sf = appointmentsTableStatusFilter;
+          if (Array.isArray(sf) && sf.length > 0) {
+              // PHP/Laravel need `status[]=` so duplicate keys are not collapsed to one value.
+              query["status[]"] = sf;
+          } else if (typeof sf === "string" && sf.trim()) {
+              query.status = sf.trim();
           }
           const res = await $fetch(`${apiBase.value}/api/appointments`, { query });
           if (res && Array.isArray(res.data)) {
               appointments.value = res.data.map(mapAppointment);
-              appointmentsLastPage.value = Math.max(1, Number(res.last_page) || 1);
-              if (res.current_page != null) {
-                  appointmentsPage.value = Number(res.current_page);
-              }
           } else {
               appointments.value = [];
-              appointmentsLastPage.value = 1;
           }
       } catch (e) {
           console.error(e);
           fetchError.value = "Could not load appointments. Is the API running?";
           appointments.value = [];
-          appointmentsLastPage.value = 1;
       } finally {
           loading.value = false;
       }
   }
 
   function refreshAppointments() {
-      loadAppointments();
-  }
-
-  function onAppointmentsPageChange(page) {
-      appointmentsPage.value = page;
       loadAppointments();
   }
 
@@ -213,7 +201,6 @@
   }
 
   function onAppointmentSaved() {
-      appointmentsPage.value = 1;
       refreshDashboard();
   }
 
