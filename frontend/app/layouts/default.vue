@@ -4,10 +4,10 @@
       <v-app-bar color="primary-blue" flat height="70">
           <v-container class="d-flex align-center">
               <div class="appbar-brand flex-shrink-0 mr-3" aria-hidden="true">
-                  <v-img src="/icon.png" alt="" width="40" height="40" contain />
+                  <v-img src="/icon2.png" alt="" width="40" height="40" contain />
               </div>
               <v-app-bar-title class="font-weight-bold text-white text-uppercase" style="letter-spacing: 1px">
-                  Urmaza Dental Clinic
+                Dental Clinic
               </v-app-bar-title>
 
               <v-spacer></v-spacer>

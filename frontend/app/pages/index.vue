@@ -1,11 +1,11 @@
 <template>
-    <div>
+    <div class="landing-page">
         <!-- Hero -->
         <section class="hero-section d-flex align-center">
             <v-container fluid class="hero-container py-14 py-md-16 py-lg-20">
                 <v-row class="hero-row align-center" dense>
                     <v-col cols="12" lg="6" class="text-center text-lg-start">
-                        <div class="hero-visual d-flex justify-center justify-lg-cente">
+                        <div class="hero-visual d-flex justify-center justify-lg-center">
                             <img
                                 :src="heroMarkSrc"
                                 alt="Urmaza Dental Clinic"
@@ -28,7 +28,7 @@
                                 <v-btn
                                     color="primary-blue"
                                     size="x-large"
-                                    class="hero-cta rounded-pill px-10 text-white"
+                                    class="hero-cta hero-cta-gradient rounded-pill px-10 text-white"
                                     elevation="3"
                                     @click="showBooking = true"
                                 >
@@ -239,23 +239,49 @@
 </script>
 
 <style scoped lang="scss">
+    /* One viewport-anchored backdrop so section boundaries don’t “restart” the gradient. */
+    .landing-page {
+        position: relative;
+        isolation: isolate;
+
+        &::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            background-color: #f5f7fc;
+            background-image:
+                radial-gradient(ellipse 95% 72% at 90% 4%, rgba(253, 184, 19, 0.34), transparent 48%),
+                radial-gradient(ellipse 78% 58% at -2% 102%, rgba(26, 35, 126, 0.18), transparent 46%),
+                radial-gradient(ellipse 70% 52% at 102% 48%, rgba(26, 35, 126, 0.08), transparent 50%),
+                radial-gradient(ellipse 65% 50% at 0% 88%, rgba(253, 184, 19, 0.1), transparent 52%),
+                linear-gradient(
+                    168deg,
+                    rgba(26, 35, 126, 0.2) 0%,
+                    rgba(197, 208, 255, 0.48) 16%,
+                    #ffffff 38%,
+                    rgba(236, 240, 255, 0.72) 58%,
+                    rgba(255, 255, 255, 0.97) 78%,
+                    rgba(249, 250, 251, 1) 92%,
+                    rgba(253, 184, 19, 0.1) 100%
+                );
+        }
+
+        > section {
+            position: relative;
+            z-index: 1;
+        }
+    }
+
     .hero-section {
         position: relative;
         overflow: hidden;
         min-height: min(88vh, 56rem);
-        background: linear-gradient(165deg, rgba(26, 35, 126, 0.07) 0%, #ffffff 38%, #f9fafb 100%);
+        background: transparent;
 
         @media (max-width: 1279px) {
             min-height: 0;
-        }
-
-        &::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background: radial-gradient(ellipse 90% 70% at 92% 8%, rgba(253, 184, 19, 0.14), transparent 52%),
-                radial-gradient(ellipse 60% 50% at 0% 100%, rgba(26, 35, 126, 0.06), transparent 45%);
-            pointer-events: none;
         }
 
         .hero-container {
@@ -318,7 +344,12 @@
             width: 3.5rem;
             height: 5px;
             border-radius: 999px;
-            background: var(--secondary-yellow, #fdb813);
+            background: linear-gradient(
+                90deg,
+                var(--secondary-yellow, #fdb813) 0%,
+                #ffe082 45%,
+                var(--secondary-yellow, #fdb813) 100%
+            );
             margin-bottom: 1.5rem;
         }
 
@@ -332,6 +363,19 @@
         .hero-cta {
             font-weight: 600;
             letter-spacing: 0.02em;
+        }
+
+        .hero-cta-gradient {
+            background-image: linear-gradient(
+                135deg,
+                #12185c 0%,
+                #1a237e 38%,
+                #303f9f 72%,
+                #1a237e 100%
+            ) !important;
+            box-shadow:
+                0 6px 22px rgba(26, 35, 126, 0.42),
+                0 2px 8px rgba(253, 184, 19, 0.18) !important;
         }
 
         .hero-cta-row {
@@ -417,14 +461,45 @@
     }
 
     .ads-section {
+        overflow: hidden;
+        background: transparent;
+
         .ad-card {
-            border-color: rgba(0, 0, 0, 0.06) !important;
+            border-color: rgba(26, 35, 126, 0.14) !important;
         }
 
         /* Full width of column — four cards per row from `md` up (matches wide before/after tiles). */
         .ad-card-highlight {
             width: 100%;
             max-width: 100%;
+            position: relative;
+            background: linear-gradient(
+                165deg,
+                rgba(228, 234, 253, 0.85) 0%,
+                #ffffff 35%,
+                rgba(253, 184, 19, 0.12) 100%
+            ) !important;
+        }
+
+        .ad-card-highlight::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: linear-gradient(
+                180deg,
+                rgba(26, 35, 126, 0.06) 0%,
+                transparent 35%,
+                transparent 62%,
+                rgba(26, 35, 126, 0.08) 100%
+            );
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .ad-card-highlight :deep(.v-img) {
+            position: relative;
+            z-index: 2;
         }
 
         .ad-card-highlight :deep(.v-img__img) {
@@ -439,19 +514,30 @@
     }
 
     .services-section {
+        overflow: hidden;
+        background: transparent;
+
         .service-card {
-            border-color: rgba(26, 35, 126, 0.12) !important;
+            border-color: rgba(26, 35, 126, 0.16) !important;
+            background: linear-gradient(
+                158deg,
+                rgba(255, 255, 255, 0.98) 0%,
+                rgba(220, 228, 255, 0.72) 42%,
+                rgba(255, 255, 255, 0.96) 72%,
+                rgba(253, 184, 19, 0.07) 100%
+            ) !important;
             transition: box-shadow 0.2s ease;
             &:hover {
                 box-shadow:
-                    0 4px 14px rgba(26, 35, 126, 0.12),
-                    0 2px 6px rgba(0, 0, 0, 0.06) !important;
+                    0 6px 20px rgba(26, 35, 126, 0.16),
+                    0 2px 8px rgba(253, 184, 19, 0.1) !important;
             }
         }
     }
 
     .contact-strip {
-        background: linear-gradient(180deg, rgba(26, 35, 126, 0.05) 0%, rgba(249, 250, 251, 0) 42%);
+        overflow: hidden;
+        background: transparent;
 
         .contact-strip-label {
             letter-spacing: 0.08em;
@@ -459,8 +545,14 @@
         }
 
         .contact-card {
-            border-color: rgba(26, 35, 126, 0.14) !important;
-            background-color: #fff;
+            border-color: rgba(26, 35, 126, 0.18) !important;
+            background: linear-gradient(
+                148deg,
+                rgba(255, 255, 255, 0.99) 0%,
+                rgba(228, 234, 253, 0.78) 38%,
+                #ffffff 72%,
+                rgba(253, 184, 19, 0.1) 100%
+            ) !important;
             transition:
                 box-shadow 0.22s ease,
                 transform 0.22s ease,
@@ -468,15 +560,20 @@
 
             &:hover {
                 box-shadow:
-                    0 10px 28px rgba(26, 35, 126, 0.1),
-                    0 4px 10px rgba(0, 0, 0, 0.04) !important;
+                    0 12px 32px rgba(26, 35, 126, 0.14),
+                    0 4px 12px rgba(253, 184, 19, 0.12) !important;
                 transform: translateY(-3px);
-                border-color: rgba(26, 35, 126, 0.22) !important;
+                border-color: rgba(26, 35, 126, 0.28) !important;
             }
         }
 
         .contact-card--social {
-            background: linear-gradient(145deg, rgba(26, 35, 126, 0.06) 0%, #fff 55%);
+            background: linear-gradient(
+                152deg,
+                rgba(26, 35, 126, 0.14) 0%,
+                rgba(255, 255, 255, 0.96) 45%,
+                rgba(253, 184, 19, 0.16) 100%
+            ) !important;
         }
 
         .contact-fb-link {
