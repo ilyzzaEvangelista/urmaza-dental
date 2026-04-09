@@ -161,30 +161,42 @@
 
   const searchActive = computed(() => Boolean(searchQuery.value?.trim()));
 
+  function compareAppointmentsLatestFirst(a, b) {
+      const ka = Number(a.createdAtMs) || 0;
+      const kb = Number(b.createdAtMs) || 0;
+      if (kb !== ka) {
+          return kb - ka;
+      }
+      return (Number(b.id) || 0) - (Number(a.id) || 0);
+  }
+
   const filteredAppointments = computed(() => {
       const rows = props.appointments || [];
       const q = searchQuery.value.trim().toLowerCase();
+      let list;
       if (!q) {
-          return rows;
+          list = rows;
+      } else {
+          const tokens = q.split(/\s+/).filter(Boolean);
+          list = rows.filter((item) => {
+              const haystack = [
+                  item.name,
+                  item.phone,
+                  item.contact_number,
+                  item.email,
+                  item.service,
+                  item.date,
+                  item.time,
+                  item.status,
+                  item.note,
+              ]
+                  .filter((v) => v != null && String(v).trim() !== "")
+                  .map((v) => String(v).toLowerCase())
+                  .join(" ");
+              return tokens.every((t) => haystack.includes(t));
+          });
       }
-      const tokens = q.split(/\s+/).filter(Boolean);
-      return rows.filter((item) => {
-          const haystack = [
-              item.name,
-              item.phone,
-              item.contact_number,
-              item.email,
-              item.service,
-              item.date,
-              item.time,
-              item.status,
-              item.note,
-          ]
-              .filter((v) => v != null && String(v).trim() !== "")
-              .map((v) => String(v).toLowerCase())
-              .join(" ");
-          return tokens.every((t) => haystack.includes(t));
-      });
+      return [...list].sort(compareAppointmentsLatestFirst);
   });
 
   const emptyMessage = computed(() => {

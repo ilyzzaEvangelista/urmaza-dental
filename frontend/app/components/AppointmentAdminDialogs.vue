@@ -278,6 +278,8 @@
 
   const emit = defineEmits(["saved", "deleted", "error"]);
 
+  const refreshAdminPendingConfirmCount = inject("refreshAdminPendingConfirmCount", null);
+
   const apiOrigin = computed(() => resolveApiBaseString(props.apiBase));
   const authHeaders = useAuthFetchHeaders();
 
@@ -446,6 +448,9 @@
           editSlotAvailability.value = null;
           showToast("Appointment updated.", "success");
           emit("saved");
+          if (typeof refreshAdminPendingConfirmCount === "function") {
+              refreshAdminPendingConfirmCount();
+          }
       } catch (err) {
           console.error(err);
           const msg = err?.data?.message || err?.response?._data?.message || "Could not save appointment.";
@@ -470,6 +475,9 @@
           deleteConfirmOpen.value = false;
           showToast("Appointment deleted.", "success");
           emit("deleted", row.id);
+          if (typeof refreshAdminPendingConfirmCount === "function") {
+              refreshAdminPendingConfirmCount();
+          }
       } catch (err) {
           console.error(err);
           const msg = "Could not delete appointment.";

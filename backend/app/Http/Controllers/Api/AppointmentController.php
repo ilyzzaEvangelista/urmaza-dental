@@ -310,7 +310,7 @@ class AppointmentController extends Controller
         $perPage = (int) ($validated['per_page'] ?? 10);
 
         $query = Appointment::query()
-            ->orderByDesc('appointment_date')
+            ->orderByDesc('created_at')
             ->orderByDesc('id');
 
         $allowed = ['pending', 'confirmed', 'completed', 'cancelled'];

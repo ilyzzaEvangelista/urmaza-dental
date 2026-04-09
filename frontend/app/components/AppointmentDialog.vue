@@ -180,6 +180,8 @@
 
   const emit = defineEmits(["update:modelValue", "success"]);
 
+  const refreshAdminPendingConfirmCount = inject("refreshAdminPendingConfirmCount", null);
+
   const apiBase = usePublicApiBase();
 
   const internalValue = computed({
@@ -335,6 +337,9 @@
 
           showToast("Appointment request submitted successfully!");
           emit("success", response.data);
+          if (typeof refreshAdminPendingConfirmCount === "function") {
+              refreshAdminPendingConfirmCount();
+          }
           close();
       } catch (error) {
           console.error("Submission failed:", error);

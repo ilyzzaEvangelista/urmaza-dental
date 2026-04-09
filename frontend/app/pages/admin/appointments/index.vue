@@ -94,6 +94,8 @@
       const status = String(row.status || "pending").toLowerCase();
       const label = status.charAt(0).toUpperCase() + status.slice(1);
       const parts = appointmentPartsFromApi(row.appointment_date);
+      const createdSrc = row.created_at || row.updated_at || row.appointment_date;
+      const createdMs = createdSrc ? new Date(createdSrc).getTime() : 0;
       return {
           id: row.id,
           name: row.name,
@@ -111,6 +113,7 @@
           image: row.image || null,
           appointment_date_raw: parts.rawLocal,
           statusKey: status,
+          createdAtMs: Number.isNaN(createdMs) ? 0 : createdMs,
       };
   }
 
