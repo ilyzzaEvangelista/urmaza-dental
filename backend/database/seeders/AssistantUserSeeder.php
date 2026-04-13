@@ -14,7 +14,7 @@ class AssistantUserSeeder extends Seeder
     public function run(): void
     {
         User::updateOrCreate(
-            ['email' => 'assistant@urmaza.com'],
+            ['email' => 'assistant@example.com'],
             [
                 'name' => 'Dental Assistant',
                 'username' => 'assistant',

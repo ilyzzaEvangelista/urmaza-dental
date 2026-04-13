@@ -187,20 +187,20 @@
 
     const heroTagline = "𝙔𝙤𝙪𝙧 𝙛𝙖𝙢𝙞𝙡𝙮'𝙨 𝙝𝙤𝙢𝙚 𝙛𝙤𝙧 𝙙𝙚𝙣𝙩𝙖𝙡 𝙝𝙚𝙖𝙡𝙩𝙝.";
 
-    const facebookPageUrl = computed(() => String(runtimeConfig.public.facebookUrl || "https://www.facebook.com/"));
+    const facebookPageUrl = computed(() => String("https://www.facebook.com/"));
 
     const contactBlocks = [
         {
             key: "address",
             label: "Location",
             icon: "mdi-map-marker-outline",
-            lines: ["720 NHA Ave., Brgy. Dela Paz,", "Antipolo City, Rizal"],
+            lines: ["XXX NHA Ave., Brgy. XXX,", "XXX City, XXX"],
         },
         {
             key: "phone",
             label: "Phone",
             icon: "mdi-phone-outline",
-            lines: ["0995-906-4972", "(02) 8563-9248"],
+            lines: ["09XX-XXXX-XXXX", "(02) XXXX-XXXX"],
         },
         {
             key: "hours",

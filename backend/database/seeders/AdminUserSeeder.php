@@ -13,7 +13,7 @@ class AdminUserSeeder extends Seeder
     public function run(): void
     {
         \App\Models\User::updateOrCreate(
-            ['email' => 'admin@urmaza.com'],
+            ['email' => 'admin@example.com'],
             [
                 'name' => 'Admin User',
                 'username' => 'admin',
