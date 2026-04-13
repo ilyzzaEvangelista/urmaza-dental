@@ -14,7 +14,7 @@ export default defineNuxtConfig({
       /** Same IANA zone as Laravel `APP_TIMEZONE` (appointment wall times) */
       clinicTimezone: process.env.NUXT_PUBLIC_CLINIC_TIMEZONE || 'Asia/Manila',
       /** Clinic Facebook page — set `NUXT_PUBLIC_FACEBOOK_URL` in `.env` */
-      facebookUrl: process.env.NUXT_PUBLIC_FACEBOOK_URL || 'https://www.facebook.com/urmazadental',
+      facebookUrl: process.env.NUXT_PUBLIC_FACEBOOK_URL || 'https://www.facebook.com/',
     },
   },
 
