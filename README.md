@@ -119,3 +119,15 @@ Use a real web server (nginx, Apache, etc.), set `APP_DEBUG=false`, strong `APP_
 ## License
 
 Add your license here (e.g. MIT, proprietary) when you publish the repository.
+
+## UI 
+<img width="1920" height="2377" alt="image" src="https://github.com/user-attachments/assets/a10dc603-6a61-4525-811f-9fe63a9f160f" />
+<img width="1919" height="867" alt="image" src="https://github.com/user-attachments/assets/14b6f2f2-368a-4089-a342-556afed38646" />
+<img width="1920" height="1510" alt="image" src="https://github.com/user-attachments/assets/d057c916-5232-4a15-baa5-9fcedac4ab9b" />
+<img width="1920" height="972" alt="image" src="https://github.com/user-attachments/assets/bb75ece8-8b57-4f96-bf11-71662a99e020" />
+<img width="1920" height="1050" alt="image" src="https://github.com/user-attachments/assets/cda543dd-910f-4157-b169-9f2541983433" />
+
+
+
+
+
