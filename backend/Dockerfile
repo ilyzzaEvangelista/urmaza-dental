@@ -5,19 +5,27 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     unzip \
     libpq-dev \
     libzip-dev \
-    && docker-php-ext-install pdo pdo_pgsql zip bcmath \
+    libicu-dev \
+    libpng-dev \
+    libjpeg62-turbo-dev \
+    libfreetype6-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install pdo pdo_pgsql zip bcmath intl gd \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
+ENV COMPOSER_ALLOW_SUPERUSER=1
+
 COPY composer.json composer.lock ./
-RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist
+
+RUN composer install --no-dev --prefer-dist --no-scripts --optimize-autoloader
 
 COPY . .
-RUN composer dump-autoload --optimize \
-    && chmod -R 775 storage bootstrap/cache
+
+RUN chmod -R 775 storage bootstrap/cache
 
 EXPOSE 8000
 

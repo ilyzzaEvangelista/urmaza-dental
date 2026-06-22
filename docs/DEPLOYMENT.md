@@ -51,7 +51,7 @@ Laravel uses `DB_CONNECTION=pgsql` and reads `DB_URL` from `config/database.php`
 
 1. Push this repo to **GitHub**.
 2. In [Render Dashboard](https://dashboard.render.com) → **New → Blueprint**.
-3. Connect the repo; Render reads root **`render.yaml`**.
+3. Connect the repo; Render reads root **`render.yaml`** (`dockerContext: backend`, `dockerfilePath: backend/Dockerfile`).
 4. Set **secret** environment variables when prompted:
    - **`APP_KEY`** — generate locally:  
      `cd backend && php artisan key:generate --show`
@@ -62,9 +62,9 @@ Laravel uses `DB_CONNECTION=pgsql` and reads `DB_URL` from `config/database.php`
 ### Option B — Manual web service
 
 1. **New → Web Service** → connect repo.
-2. **Root directory:** `backend`
-3. **Runtime:** Docker
-4. **Dockerfile path:** `Dockerfile`
+2. **Runtime:** Docker
+3. **Dockerfile path:** `backend/Dockerfile`
+4. **Docker build context:** `backend`
 5. **Plan:** Free
 6. **Health check path:** `/up`
 7. Add environment variables (see [Production env vars](#production-env-vars-backend-render)).

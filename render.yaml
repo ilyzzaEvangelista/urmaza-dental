@@ -7,8 +7,8 @@ services:
   - type: web
     name: urmaza-api
     runtime: docker
-    rootDir: backend
-    dockerfilePath: Dockerfile
+    dockerContext: backend
+    dockerfilePath: backend/Dockerfile
     plan: free
     healthCheckPath: /up
     envVars:
