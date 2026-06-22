@@ -29,7 +29,6 @@ export default defineNuxtConfig({
   modules: [
     'vuetify-nuxt-module',
     '@pinia/nuxt',
-    '@pinia-plugin-persistedstate/nuxt',
     '@nuxtjs/i18n',
     '@nuxtjs/color-mode',
     '@nuxt/icon',
