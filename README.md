@@ -6,8 +6,18 @@ Monorepo for **Appointment System**: a public-facing website for booking and inf
 
 | Path        | Description |
 |------------|-------------|
-| `backend/` | Laravel API (`php artisan serve`, Sanctum auth, SQLite/MySQL) |
+| `backend/` | Laravel API (`php artisan serve`, Sanctum auth, SQLite locally / PostgreSQL in production) |
 | `frontend/` | Nuxt 4 SPA (`npm run dev`), proxies `/api` and `/storage` to Laravel in development |
+
+## Deploy to production (free tier)
+
+Step-by-step guide: **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**
+
+- **Frontend:** Vercel (static Nuxt)  
+- **API:** Render (Docker, `render.yaml`)  
+- **Database:** Neon (PostgreSQL)
+
+Config files: `render.yaml`, `backend/Dockerfile`, `frontend/vercel.json`, `frontend/.env.production.example`.
 
 ## Features (high level)
 
@@ -113,7 +123,7 @@ Use a real web server (nginx, Apache, etc.), set `APP_DEBUG=false`, strong `APP_
 
 ## Tech stack
 
-- **Backend:** Laravel 12, Laravel Sanctum (Bearer API auth), Eloquent, SQLite/MySQL
+- **Backend:** Laravel 12, Laravel Sanctum (Bearer API auth), Eloquent, SQLite (local) / PostgreSQL (production)
 - **Frontend:** Nuxt 4, Vue 3, Vuetify (Nuxt module), Pinia, Sass, i18n (en / tl)
 
 ## License
