@@ -7,8 +7,8 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       /**
-       * Laravel API origin. Empty = in **production** same origin as the SPA; in **`nuxt dev`** the app
-       * resolves to `http://127.0.0.1:8000` (see `utils/apiBase.js`) unless you set this explicitly.
+       * Laravel API origin. Empty = same origin as the SPA (`/api` via Vite/Nitro proxy in dev).
+       * Set `NUXT_PUBLIC_API_BASE` only when the API is on a different host.
        */
       apiBase: process.env.NUXT_PUBLIC_API_BASE ?? '',
       /** Same IANA zone as Laravel `APP_TIMEZONE` (appointment wall times) */

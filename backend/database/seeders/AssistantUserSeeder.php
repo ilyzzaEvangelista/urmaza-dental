@@ -13,14 +13,24 @@ class AssistantUserSeeder extends Seeder
      */
     public function run(): void
     {
-        User::updateOrCreate(
-            ['email' => 'assistant@example.com'],
-            [
+        $user = User::query()->where('username', 'assistant')->first();
+
+        if ($user) {
+            $user->fill([
                 'name' => 'Dental Assistant',
-                'username' => 'assistant',
                 'password' => Hash::make('password'),
                 'role' => User::ROLE_ASSISTANT,
-            ],
-        );
+            ])->save();
+
+            return;
+        }
+
+        User::create([
+            'name' => 'Dental Assistant',
+            'username' => 'assistant',
+            'email' => 'assistant@example.com',
+            'password' => Hash::make('password'),
+            'role' => User::ROLE_ASSISTANT,
+        ]);
     }
 }

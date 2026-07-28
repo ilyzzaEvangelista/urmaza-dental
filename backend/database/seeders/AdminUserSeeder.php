@@ -12,14 +12,24 @@ class AdminUserSeeder extends Seeder
      */
     public function run(): void
     {
-        \App\Models\User::updateOrCreate(
-            ['email' => 'admin@example.com'],
-            [
+        $user = \App\Models\User::query()->where('username', 'admin')->first();
+
+        if ($user) {
+            $user->fill([
                 'name' => 'Admin User',
-                'username' => 'admin',
                 'password' => \Illuminate\Support\Facades\Hash::make('password'),
                 'role' => \App\Models\User::ROLE_ADMIN,
-            ],
-        );
+            ])->save();
+
+            return;
+        }
+
+        \App\Models\User::create([
+            'name' => 'Admin User',
+            'username' => 'admin',
+            'email' => 'admin@example.com',
+            'password' => \Illuminate\Support\Facades\Hash::make('password'),
+            'role' => \App\Models\User::ROLE_ADMIN,
+        ]);
     }
 }
